@@ -4,7 +4,7 @@ import os
 
 from haruba.api import haruba_api, login_manager
 from haruba.permissions import principal, set_identity_loader
-
+from haruba.database import db
 OVERRIDES = ('SECRET_KEY',
              'SENTRY_DSN')
 
@@ -18,7 +18,7 @@ def make_app(config=None):
         config = 'config.Config'
     app = Flask(__name__)
     app.config.from_object(config)
-    app.config.from_envvar('KABUTO_CONFIG', silent=True)
+    app.config.from_envvar('HARUBA_CONFIG', silent=True)
     for key in OVERRIDES:
         read_config(app.config, key)
 
@@ -26,10 +26,15 @@ def make_app(config=None):
     principal.init_app(app)
     set_identity_loader(app)
     login_manager.init_app(app)
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+
     if app.config['SENTRY_DSN']:
         Sentry(app)
     else:
         print("sentry not enabled !")
+
     return app
 
 
