@@ -1,0 +1,4 @@
+sytnax: glob
+htmlcov*
+.coverage
+.project
