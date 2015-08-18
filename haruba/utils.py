@@ -1,4 +1,4 @@
-from flask import current_app, jsonify, request
+from flask import current_app, jsonify, request, abort
 import os
 from datetime import datetime
 from haruba.database import db, Zone
@@ -34,29 +34,29 @@ class User(object):
         return self.login
 
 
+def prep_json(*args, **kwargs):
+    return args[0]
+
+
 # ---------------- ERROR SECTION ----------------
-def throw_message(status, message):
-    message = {'status': status,
+def throw_success(message):
+    message = {'status': 200,
                'message': message}
     resp = jsonify(message)
-    resp.status_code = status
+    resp.status_code = 200
     return resp
 
 
-def throw_success(message):
-    return throw_message(200, message)
-
-
 def throw_not_found():
-    return throw_message(404, 'Not Found: %s' % request.url)
+    abort(404, 'Not Found: %s' % request.url)
 
 
 def throw_error(error):
-    return throw_message(400, error)
+    abort(400, error)
 
 
 def throw_unauthorised(error):
-    return throw_message(401, error)
+    abort(401, error)
 
 
 # ---------------- FILE OPERATIONS ----------------
@@ -153,13 +153,14 @@ def make_selective_zip(zip_name, base_path, files):
 
 
 def zipdir(path, zipf, root_folder):
-    for root, dirs, files in os.walk(path):
+    for root, _, files in os.walk(path):
         for fh in files:
             file_path = os.path.join(root, fh)
             zipf.write(file_path, os.path.relpath(file_path, root_folder))
 
 
 def unzip(zip_dir, path, delete_after=False):
+    print(delete_after)
     if os.path.exists(zip_dir):
         with zipfile.ZipFile(zip_dir) as zf:
             zf.extractall(path)

@@ -15,12 +15,18 @@ WRITE_PERMISSION = 'write'
 
 
 def process_request(func, args, kwargs, context, permission):
-    group = kwargs['group']
-    permission = Permission(ItemNeed(context, permission, group))
+    group = kwargs.get('group', None)
+    if group:
+        need = tuple((context, permission, group))
+    else:
+        need = tuple((context, permission))
+
+    permission = Permission(need)
     if permission.can():
-        # already setting the group root
-        # to prevent from getting it manually in each resource
-        kwargs['group_root'] = get_group_root(group)
+        if group:
+            # already setting the group root
+            # to prevent from getting it manually in each resource
+            kwargs['group_root'] = get_group_root(group)
         return func(*args, **kwargs)
     abort(403)
 
@@ -66,4 +72,4 @@ def set_identity_loader(app):
             identity.provides.add(UserNeed(current_user.login))
 
         for role in session.get('provides', []):
-            identity.provides.add(ItemNeed(*role))
+            identity.provides.add(tuple(role))
