@@ -72,7 +72,7 @@ def test_grant_permissions_error(admin_client):
     is_in_data(r, 'message', "it's not done, son")
 
 
-@patch("sigil_client.SigilClient.grant", permissions_return_value)
+@patch("sigil_client.SigilClient.withdraw", permissions_return_value)
 def test_withdraw_permissions(admin_client):
     ac = admin_client
     content = json.dumps(data)
