@@ -1,8 +1,7 @@
 from flask import abort, session
 from flask_principal import Principal
 from flask_login import current_user
-from flask_principal import (identity_loaded, ItemNeed, UserNeed,
-                             Permission)
+from flask_principal import identity_loaded, UserNeed, Permission
 from functools import wraps
 from haruba.utils import get_group_root
 

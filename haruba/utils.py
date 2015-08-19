@@ -1,4 +1,4 @@
-from flask import current_app, jsonify, request, abort
+from flask import current_app, jsonify, request, abort, session
 import os
 from datetime import datetime
 from haruba.database import db, Zone
@@ -6,6 +6,7 @@ from scandir import scandir
 import zipfile
 import tempfile
 import shutil
+from sigil_client import SigilClient
 
 
 FILE_TYPE = 'file'
@@ -36,6 +37,12 @@ class User(object):
 
 def prep_json(*args, **kwargs):
     return args[0]
+
+
+def get_sigil_client():
+    client = SigilClient(current_app.config['SIGIL_API_URL'])
+    client._token = session.get('sigil_token')
+    return client
 
 
 # ---------------- ERROR SECTION ----------------

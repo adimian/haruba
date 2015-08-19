@@ -16,10 +16,11 @@ from haruba.utils import (User, assemble_directory_contents, get_group_root,
                           throw_success, throw_error, throw_not_found, unzip,
                           make_zip, make_selective_zip, delete_file_or_folder,
                           get_path_from_group_url, construct_available_path,
-                          throw_unauthorised, prep_json)
+                          throw_unauthorised, prep_json, get_sigil_client)
 from haruba.permissions import (has_read, has_write, has_admin_read,
                                 has_admin_write)
 from haruba.database import db, Zone
+from sigil_client import SigilClient
 
 
 logger = logging.getLogger(__name__)
@@ -30,13 +31,16 @@ login_manager = LoginManager()
 
 
 def request_authentication(username, password):
-    # connect to identity server and authenticate the user
-    return {'login': 'maarten',
-            'givenName': 'de paepe',
-            'displayName': 'Maarten De Paepe',
-            'provides': [['zone', 'read', 'pyrene_prod'],
-                         ['zone', 'write', 'pyrene_prod']]
-            }
+    api_url = current_app.config['SIGIL_API_URL']
+    app_name = current_app.config['SIGIL_APP_NAME']
+    client = SigilClient(api_url, username=username, password=password)
+    print('logging in')
+    client.login()
+    session['sigil_token'] = client._token
+    details = client.user_details()
+    details.update(client.provides(context=app_name))
+    print(details)
+    return details
 
 
 @login_manager.user_loader
@@ -53,8 +57,8 @@ class Login(Resource):
 
         login = args['login']
         user = request_authentication(login, args['password'])
-        if user.get('login'):
-            login_user(User(user['login'], user['provides']))
+        if user.get('username'):
+            login_user(User(user['username'], user['provides']))
             session['provides'] = user['provides']
             identity_changed.send(current_app._get_current_object(),
                                   identity=Identity(login))
@@ -419,6 +423,61 @@ class Zones(ProtectedResource):
                              % ", ".join(zones))
 
 
+class Permissions(ProtectedResource):
+    @has_admin_read
+    def get(self):
+        client = get_sigil_client()
+        app_name = current_app.config['SIGIL_APP_NAME']
+        try:
+            users = client.list_users(context=app_name)
+        except Exception as e:
+            throw_error(str(e))
+        return users
+
+    @has_admin_write
+    def post(self):
+        """
+        grants needs
+        {'permissions': [{'username': <username>,
+                          'needs': [<need>, <need>]},]}
+        """
+        return self.prepare_request('grant')
+
+    @has_admin_write
+    def delete(self):
+        """
+        deletes needs
+        {'permissions': [{'username': <username>,
+                          'needs': [<need>, <need>]},]}
+        """
+        return self.prepare_request('withdraw')
+
+    def prepare_request(self, func_name):
+        parser = reqparse.RequestParser()
+        parser.add_argument('permissions', location='json', type=prep_json)
+        args = parser.parse_args()
+
+        if not args['permissions']:
+            throw_error("No permissions found")
+        client = get_sigil_client()
+        app_name = current_app.config['SIGIL_APP_NAME']
+
+        for perm in args['permissions']:
+            if not isinstance(perm, dict):
+                throw_error("A need item must be a dictionary")
+            username = perm.get('username')
+            needs = perm.get('needs')
+            if not username and not needs:
+                msg = "A need item must have a 'username' and 'needs' key"
+                throw_error(msg)
+            try:
+                func = getattr(client, func_name)
+                func(context=app_name, needs=needs, username=username)
+            except Exception as e:
+                throw_error(str(e))
+        return throw_success("Success")
+
+
 haruba_api.add_resource(Login,
                         '/login')
 haruba_api.add_resource(Folder,
@@ -435,3 +494,5 @@ haruba_api.add_resource(Command,
                         '/command/<group>/<path:path>')
 haruba_api.add_resource(Zones,
                         '/zone')
+haruba_api.add_resource(Permissions,
+                        '/permissions')

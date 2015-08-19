@@ -43,21 +43,27 @@ def make_file_or_folder(path, entry):
                 fh.write(b'some content')
 
 
+def login(*args, **kwargs):
+    print('logged in')
+
+
+def user_details(*args, **kwargs):
+    return {'id': 1,
+            'username': 'test',
+            'firstname': 'test',
+            'lastname': 'test',
+            'displayname': 'test test'}
+
+
 def full_auth(*args, **kwargs):
-    return {'login': 'test',
-            'givenName': 'test',
-            'displayName': 'test test',
-            'provides': [['zone', 'read', 'test_zone'],
+    return {'provides': [['zone', 'read', 'test_zone'],
                          ['zone', 'write', 'test_zone'],
                          ['permissions', 'write'],
                          ['permissions', 'read']]}
 
 
 def auth(*args, **kwargs):
-    return {'login': 'test',
-            'givenName': 'test',
-            'displayName': 'test test',
-            'provides': [['zone', 'read', 'test_zone'],
+    return {'provides': [['zone', 'read', 'test_zone'],
                          ['zone', 'write', 'test_zone']]}
 
 
@@ -89,7 +95,9 @@ def client(app):
 
 
 @pytest.fixture
-@patch("haruba.api.request_authentication", auth)
+@patch("sigil_client.SigilClient.login", login)
+@patch("sigil_client.SigilClient.user_details", user_details)
+@patch("sigil_client.SigilClient.provides", auth)
 def authenticated_client(client):
     client.post('/login', data={'login': 'me',
                                 'password': 'Secret'})
@@ -97,7 +105,9 @@ def authenticated_client(client):
 
 
 @pytest.fixture
-@patch("haruba.api.request_authentication", full_auth)
+@patch("sigil_client.SigilClient.login", login)
+@patch("sigil_client.SigilClient.user_details", user_details)
+@patch("sigil_client.SigilClient.provides", full_auth)
 def admin_client(client):
     client.post('/login', data={'login': 'me',
                                 'password': 'Secret'})

@@ -1,8 +1,10 @@
 from unittest.mock import patch
-from haruba.test.conftest import auth, wrong_auth
+from haruba.test.conftest import auth, wrong_auth, user_details, login
 
 
-@patch("haruba.api.request_authentication", auth)
+@patch("sigil_client.SigilClient.login", login)
+@patch("sigil_client.SigilClient.user_details", user_details)
+@patch("sigil_client.SigilClient.provides", auth)
 def test_login(client):
     # not yet logged in
     rv = client.get('/files/test_zone')
