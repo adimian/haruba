@@ -62,7 +62,7 @@ class Login(Resource):
             session['provides'] = user['provides']
             identity_changed.send(current_app._get_current_object(),
                                   identity=Identity(login))
-            return throw_success("Success")
+            return ("success", 200)
         throw_unauthorised("Could not log in")
 
 
@@ -92,6 +92,7 @@ class Folder(ProtectedResource):
         """
         returns a list of files and directories at the given path
         """
+        print("in get folder")
         return assemble_directory_contents(group, path)
 
     @has_write
@@ -197,7 +198,6 @@ class Upload(ProtectedWriteResource):
         full_path = os.path.join(group_root, path)
         if not os.path.isdir(full_path):
             throw_error("%s is not a folder" % request.url)
-        print(args['files'])
         for filestorage in args['files']:
             file_name = filestorage.filename
             file_path = os.path.join(full_path, file_name)
@@ -252,7 +252,7 @@ class Download(ProtectedReadResource):
             if do_not_exist:
                 message = "Following files could not be found at %s: %s"
                 throw_error(message % (request.url,
-                                              ", ".join(do_not_exist)))
+                                       ", ".join(do_not_exist)))
 
         filepath = make_selective_zip(zip_name, base_path, files)
         return send_file(filepath,
@@ -381,6 +381,13 @@ class Zones(ProtectedResource):
             path = zone.get('path')
             if not name or not path:
                 throw_error("A zone entry needs a zone and path key.")
+            if db.session.query(Zone).filter_by(name=name).all():
+                throw_error("This zone already exists")
+            if path.startswith("/"):
+                path = path[1:]
+            zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
+                                     path)
+            os.makedirs(zone_path, exist_ok=True)
             zones.append(name)
             zone = Zone(name, path)
             db.session.add(zone)
@@ -411,6 +418,8 @@ class Zones(ProtectedResource):
                 throw_error("must provide a zone id")
             try:
                 zone = db.session.query(Zone).filter_by(id=z['id']).one()
+                if z.get('zone') and db.session.query(Zone).filter_by(name=z['zone']).all():
+                    throw_error("This zone already exists")
                 zone.name = z.get('zone', zone.name)
                 zone.path = z.get('path', zone.path)
             except NoResultFound:

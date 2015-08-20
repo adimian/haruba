@@ -1,5 +1,6 @@
 import json
-from haruba.test.conftest import is_in_data
+from haruba.test.conftest import is_in_data, ROOT_DIR
+import os
 
 
 def test_zone(admin_client):
@@ -48,9 +49,22 @@ def test_create_zones(admin_client):
     print(data)
     expected_data = [{'id': 1, 'name': 'test_zone', 'path': ''},
                      {'id': 2, 'name': 'folder1_zone', 'path': 'folder1'},
-                     {'id': 3, 'name': 'folder2_zone', 'path': '/folder2'},
-                     {'id': 4, 'name': 'folder3_zone', 'path': '/folder3'}]
+                     {'id': 3, 'name': 'folder2_zone', 'path': 'folder2'},
+                     {'id': 4, 'name': 'folder3_zone', 'path': 'folder3'}]
+    folder3 = os.path.join(ROOT_DIR, "srv", "folder3")
+    assert os.path.exists(folder3)
     assert expected_data == data
+
+
+def test_create_existing_zones(admin_client):
+    ac = admin_client
+    command = {'zones': [{'zone': "test_zone",
+                          'path': "/folder2"}]}
+    content = json.dumps(command)
+    r = ac.post("/zone", data=content,
+                content_type='application/json')
+    r.status_code = 400
+    is_in_data(r, 'message', 'This zone already exists')
 
 
 def test_update_zones(admin_client):
@@ -63,6 +77,18 @@ def test_update_zones(admin_client):
                content_type='application/json')
     r.status_code = 200
     is_in_data(r, 'message', 'Successfully updated zones')
+
+
+def test_update_existing_zones(admin_client):
+    ac = admin_client
+    command = {'zones': [{'id': 2,
+                          'zone': "test_zone",
+                          'path': "/folder5"}]}
+    content = json.dumps(command)
+    r = ac.put("/zone", data=content,
+               content_type='application/json')
+    r.status_code = 400
+    is_in_data(r, 'message', 'This zone already exists')
 
 
 def test_update_zones_no_id(admin_client):

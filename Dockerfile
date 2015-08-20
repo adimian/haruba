@@ -15,7 +15,7 @@ RUN pip3 install -r /tmp/requirements.txt
 
 ADD . /source
 
-ENV KABUTO_CONFIG=/etc/haruba/config.cfg
+ENV HARUBA_CONFIG=/etc/haruba/config.cfg
 
 ENV WORKERS=1
 ENV HOST=0.0.0.0

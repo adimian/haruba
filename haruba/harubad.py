@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from raven.contrib.flask import Sentry
 import os
 
@@ -21,6 +21,16 @@ def make_app(config=None):
     app.config.from_envvar('HARUBA_CONFIG', silent=True)
     for key in OVERRIDES:
         read_config(app.config, key)
+
+    @app.route('/')
+    @app.route('/<path:path>')
+    def serve(path=""):
+        file = os.path.basename(path)
+        path = os.path.dirname(path)
+        if not file:
+            file = 'index.html'
+        path = os.path.join('haruba_ui', path)
+        return send_from_directory(path, file)
 
     haruba_api.init_app(app)
     principal.init_app(app)
