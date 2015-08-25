@@ -78,7 +78,7 @@ def is_in_data(r, key, value):
 
 @pytest.fixture
 def app():
-    app = make_app()
+    app = make_app('config.TestConfig')
     app.config['HARUBA_SERVE_ROOT'] = os.path.join(ROOT_DIR, "srv")
     with app.app_context():
         if not db.session.query(Zone).filter_by(name="test_zone").all():

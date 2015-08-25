@@ -1,0 +1,84 @@
+<div>
+  <div class="container">
+  	<div class="header-menu">
+  	  <div class="app-name">Haruba</div>
+  	  <div class="header-menu-item" data-bind="click: $root.logout">
+  	    <span class="glyphicon glyphicon glyphicon-off"></span> logout
+  	  </div>
+  	  <div class="header-menu-item">
+  	    <span class="glyphicon glyphicon glyphicon-cog"></span> Admin
+  	  </div>
+  	</div>
+    <div class="menu" data-bind="with: zones">
+        <div data-bind="foreach: $data">
+	    	<div class="menu-item" data-bind="text: zone, 
+	    									  attr: { 'data-access': access },
+	    									  css: { 'menu-item-selected': zone == $root.selected_zone() },
+	    									  click: $root.load_zone"></div>
+	    </div>
+	</div>
+    <div class="content">
+		<div class="breadcrumbs" data-bind="with: breadcrumbs">
+   		  <div data-bind="foreach: $data">
+   		    <div class="breadcrumb breadcrumb-seperator">></div>
+   		    <div class="breadcrumb breadcrumb-item" data-bind="text: name,
+   		    												   click: $root.go_to_breadcrumb"></div>
+   		  </div>
+   		</div>
+	   	<div class="listing" data-bind="with: folder">
+	   		<div class="commands">
+	   			<div class="dropdown">
+				  <div id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				  	<span class="glyphicon glyphicon-option-vertical" aria-hidden="true"></span>Options
+				  </div>
+				  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" id="actual_ddl">
+				    <li data-bind="click: $root.option_upload"><a href="#"><span class="glyphicon glyphicon-upload"></span> Upload</a></li>
+					<li data-bind="click: $root.create_folder"><a href="#"><span class="glyphicon glyphicon-plus-sign"></span> New Folder</a></li>
+					<li role="separator" class="divider"></li>
+					<li data-bind="click: $root.prepare_copy"><a href="#"><span class="glyphicon glyphicon glyphicon-copy"></span> Copy <span class="hotkey" data-bind="text: $root.ctrl+'+C'"></span></a></li>
+					<li data-bind="click: $root.prepare_cut"><a href="#"><span class="glyphicon glyphicon glyphicon-scissors"></span> Cut <span class="hotkey" data-bind="text: $root.ctrl+'+X'"></span></a></li>
+					<li data-bind="click: $root.execute_copy_cut"><a href="#"><span class="glyphicon glyphicon glyphicon-paste"></span> Paste <span class="hotkey" data-bind="text: $root.ctrl+'+V'"></span></a></li>
+					<li role="separator" class="divider"></li>
+					<li data-bind="click: $root.delete_items"><a href="#"><span class="glyphicon glyphicon-remove"></span> Delete<span class="hotkey">Del</span></a></li>
+					<li data-bind="click: $root.download_selected"><a href="#"><span class="glyphicon glyphicon-download-alt"></span> Download as Zip</a></li>
+				  </ul>
+				</div>
+	   		</div>
+	   		<div></div>
+	   		<div class="list-row header-row">
+	   		  <div class="header-item width-5">&nbsp;</div>
+	   		  <div class="header-item width-70" data-sortkey="name" data-bind="click: $root.sort_items">Name</div>
+	   		  <div class="header-item width-10" data-sortkey="size" data-bind="click: $root.sort_items">Size</div>
+	   		  <div class="header-item width-15" data-sortkey="modif_date" data-bind="click: $root.sort_items">Modified</div>
+	   		</div>
+	   		  <div data-bind="foreach: $data">
+		   		<div class="list-row" data-bind="css: { folder: is_dir,
+		   												selected_item: ($root.selected_items.indexOf($data) != -1) },
+		   										        click: $root.select_item">
+		   	      <div class="row-item width-5 icon">
+		   	        <img data-bind="attr: { src: 'icons/32px/' + extension + '.png'}"
+		   	          onerror="this.onerror=null;this.src='icons/32px/_blank.png';" />
+		   	      </div>
+		   		  <div class="row-item width-70">
+		   		    <div class="file_name" data-bind="text: name,
+		   										 	  click: is_dir ? $root.go_to_folder : null,
+		   										 	  clickBubble: false"></div>
+		   		    <div class="row_actions">
+		   		   	  <span class="glyphicon glyphicon-pencil" data-bind="click: $root.rename, clickBubble: false"> Rename</span>
+		   		   	  <span class="glyphicon glyphicon-remove" data-bind="click: $root.delete_single, clickBubble: false"> Delete</span>
+		   		   	  <span class="glyphicon glyphicon-download-alt" data-bind="click: $root.download_single, clickBubble: false"> Download</span>
+		   		    </div>
+		   		  </div>
+		   		  <div class="row-item width-10 mild" data-bind="text: size"></div>
+		   		  <div class="row-item width-15 mild" data-bind="text: modif_date">modified</div>
+		   	    </div>
+		   	  </div>
+		    <div class='row_action_box'></div>
+	   	</div>
+	 </div>
+  </div>
+</div>
+<div class="upload-marker"><span>Upload</span></div>
+<script>
+ko.applyBindings(zvm);
+</script>

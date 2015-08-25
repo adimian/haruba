@@ -4,24 +4,31 @@ from scandir import scandir
 from datetime import datetime
 from haruba.test.conftest import ROOT_DIR, is_in_data, make_srv, remove_srv
 import shutil
+from operator import itemgetter
 
 
 def test_get_files(authenticated_client):
     ac = authenticated_client
     r = ac.get("/files/test_zone")
     data = json.loads(r.data.decode('utf-8'))
+    data = sorted(data, key=itemgetter('name'))
 
     expected_data = []
     full_path = os.path.join(ROOT_DIR, "srv")
     for item in scandir(full_path):
         mod_date = datetime.fromtimestamp(item.stat().st_mtime)
+        if item.is_file():
+            extension = item.name.split(".")[-1]
+        else:
+            extension = 'folder'
         file_dict = {'name': item.name,
                      'is_file': item.is_file(),
                      'is_dir': item.is_dir(),
                      'size': item.stat().st_size,
-                     'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
+                     'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S'),
+                     'extension': extension}
         expected_data.append(file_dict)
-    assert data == expected_data
+    assert data == sorted(expected_data, key=itemgetter('name'))
 
 
 def test_get_files_on_folder(authenticated_client):
@@ -127,7 +134,8 @@ def test_existing_folder_delete(authenticated_client):
 def test_delete_specific_files(authenticated_client):
     ac = authenticated_client
     data = {'files_to_delete': ["folder2-file1"]}
-    r = ac.delete("/files/test_zone/folder2", data=data)
+    r = ac.delete("/files/test_zone/folder2", data=json.dumps(data),
+                  content_type='application/json')
     r.status_code = 200
     is_in_data(r, 'message', 'Successfully deleted')
     assert not os.path.exists(os.path.join(ROOT_DIR, "srv",

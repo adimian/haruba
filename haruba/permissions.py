@@ -1,9 +1,10 @@
-from flask import abort, session
+from flask import abort, session, current_app
 from flask_principal import Principal
 from flask_login import current_user
 from flask_principal import identity_loaded, UserNeed, Permission
 from functools import wraps
 from haruba.utils import get_group_root
+from sigil_client import SigilApplication
 
 principal = Principal()
 ZONE_CONTEXT = 'zone'
@@ -62,13 +63,34 @@ def has_admin_write(func):
     return decorated_view
 
 
+def declare_zone_permissions(name):
+    handle_zone_permissions(name, 'declare')
+
+
+def retract_zone_permissions(name):
+    handle_zone_permissions(name, 'retract')
+
+
+def handle_zone_permissions(name, func):
+    client = SigilApplication(current_app.config['SIGIL_API_URL'],
+                              current_app.config['SIGIL_APP_KEY'])
+    needs = [(ZONE_CONTEXT, READ_PERMISSION, name),
+             (ZONE_CONTEXT, WRITE_PERMISSION, name)]
+    getattr(client, func)(needs)
+
+
 def set_identity_loader(app):
     @identity_loaded.connect_via(app)
     def on_identity_loaded(sender, identity):
         identity.user = current_user
 
+        if not current_user.is_authenticated():
+            return
         if hasattr(current_user, 'login'):
             identity.provides.add(UserNeed(current_user.login))
 
         for role in session.get('provides', []):
+            permissions = list(role)
+            if permissions[0] == ZONE_CONTEXT:
+                current_user.add_zone(permissions)
             identity.provides.add(tuple(role))

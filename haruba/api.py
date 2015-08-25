@@ -5,7 +5,7 @@ import shutil
 import json
 
 from flask import current_app, session, send_file, request
-from flask_login import login_required, login_user
+from flask_login import login_required, login_user, current_user, logout_user
 from flask_restful import Resource, Api, reqparse, inputs
 from flask_login import LoginManager
 from flask_principal import Identity, identity_changed
@@ -18,7 +18,8 @@ from haruba.utils import (User, assemble_directory_contents, get_group_root,
                           get_path_from_group_url, construct_available_path,
                           throw_unauthorised, prep_json, get_sigil_client)
 from haruba.permissions import (has_read, has_write, has_admin_read,
-                                has_admin_write)
+                                has_admin_write, declare_zone_permissions,
+                                retract_zone_permissions)
 from haruba.database import db, Zone
 from sigil_client import SigilClient
 
@@ -34,12 +35,10 @@ def request_authentication(username, password):
     api_url = current_app.config['SIGIL_API_URL']
     app_name = current_app.config['SIGIL_APP_NAME']
     client = SigilClient(api_url, username=username, password=password)
-    print('logging in')
     client.login()
     session['sigil_token'] = client._token
     details = client.user_details()
     details.update(client.provides(context=app_name))
-    print(details)
     return details
 
 
@@ -49,6 +48,10 @@ def load_user(login):
 
 
 class Login(Resource):
+    def get(self):
+        # for the JS lib to know if the user is logged in or not
+        return current_user.is_authenticated()
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, required=True)
@@ -84,6 +87,11 @@ class ProtectedAdminReadResource(Resource):
 
 class ProtectedAdminWriteResource(Resource):
     method_decorators = [login_required, has_admin_write]
+
+
+class Logout(ProtectedResource):
+    def get(self):
+        logout_user()
 
 
 class Folder(ProtectedResource):
@@ -129,6 +137,7 @@ class Folder(ProtectedResource):
             throw_error("%s does not exist" % path)
 
         new_path = os.path.join(os.path.dirname(file_path), new_name)
+        print(new_path)
         if os.path.exists(new_path):
             throw_error(("%s already exists at %s"
                          % (new_name, os.path.dirname(path))))
@@ -143,7 +152,8 @@ class Folder(ProtectedResource):
         else:
             try:
                 os.rename(old_path, new_path)
-            except Exception:
+            except Exception as e:
+                print(e)
                 throw_error("Could not rename %s" % request.url)
 
     @has_write
@@ -163,14 +173,13 @@ class Folder(ProtectedResource):
                 throw_error(message)
         else:
             parser = reqparse.RequestParser()
-            parser.add_argument('files_to_delete', action='append', default=[])
+            parser.add_argument('files_to_delete', type=list, location='json')
             args = parser.parse_args()
 
             undeleted_files = []
             if args['files_to_delete']:
                 for filename in args['files_to_delete']:
                     filepath = os.path.join(full_path, filename)
-                    print(filepath)
                     if not delete_file_or_folder(filepath):
                         undeleted_files.append(os.path.basename(full_path))
             else:
@@ -180,6 +189,17 @@ class Folder(ProtectedResource):
                 message = "Could not delete: %s" % ", ".join(undeleted_files)
                 throw_error(message)
         return throw_success("Successfully deleted %s" % path)
+
+
+class MyZones(ProtectedResource):
+    def get(self):
+        client = get_sigil_client()
+        app_name = current_app.config['SIGIL_APP_NAME']
+        session['provides'] = client.provides(context=app_name)['provides']
+        zones = []
+        for key, values in current_user.zones.items():
+            zones.append({"zone": key, "access": values})
+        return zones
 
 
 class Upload(ProtectedWriteResource):
@@ -217,6 +237,7 @@ class Download(ProtectedReadResource):
         """
         downloads the file or folder at the given path
         """
+        print("in single download")
         filepath = os.path.join(group_root, path)
         if not os.path.exists(filepath):
             throw_not_found()
@@ -233,17 +254,23 @@ class Download(ProtectedReadResource):
         creates a zip with the selected files and folders at the given path
         and puts it up for download
         """
+        print("in multi download")
         parser = reqparse.RequestParser()
         parser.add_argument('filenames', action='append', required=True)
         args = parser.parse_args()
 
-        zip_name = "%s.zip" % group
+        zip_name = group
         if path:
-            zip_name = "%s.zip" % os.path.basename(path)
+            zip_name = os.path.basename(path)
+
+        # parse potential browser form data
+        if len(args['filenames']) == 1:
+            args['filenames'] = args['filenames'][0].split(",")
 
         base_path = os.path.join(group_root, path)
         files = []
         for filename in args['filenames']:
+            print(filename)
             filepath = os.path.join(base_path, filename)
             do_not_exist = []
             if not os.path.exists(filepath):
@@ -371,6 +398,7 @@ class Zones(ProtectedResource):
         parser = reqparse.RequestParser()
         parser.add_argument('zones', location='json', type=prep_json)
         args = parser.parse_args()
+        print(args)
         if not args['zones']:
             throw_error("No zones found")
 
@@ -387,6 +415,10 @@ class Zones(ProtectedResource):
                 path = path[1:]
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
                                      path)
+            try:
+                declare_zone_permissions(name)
+            except Exception as e:
+                throw_error(str(e))
             os.makedirs(zone_path, exist_ok=True)
             zones.append(name)
             zone = Zone(name, path)
@@ -420,11 +452,25 @@ class Zones(ProtectedResource):
                 zone = db.session.query(Zone).filter_by(id=z['id']).one()
                 if z.get('zone') and db.session.query(Zone).filter_by(name=z['zone']).all():
                     throw_error("This zone already exists")
+                old_name = zone.name
                 zone.name = z.get('zone', zone.name)
-                zone.path = z.get('path', zone.path)
+                path = z.get('path', zone.path)
+                if path.startswith("/"):
+                    path = path[1:]
+                zone.path = path
             except NoResultFound:
                 msg = ("Zone id '%s' does not exist" % z['id'])
                 throw_error(msg)
+
+            if not old_name == zone.name:
+                try:
+                    retract_zone_permissions(old_name)
+                    declare_zone_permissions(zone.name)
+                except Exception as e:
+                    throw_error(str(e))
+            zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
+                                     zone.path)
+            os.makedirs(zone_path, exist_ok=True)
             db.session.add(zone)
             zones.append(zone.name)
             db.session.commit()
@@ -472,6 +518,7 @@ class Permissions(ProtectedResource):
         app_name = current_app.config['SIGIL_APP_NAME']
 
         for perm in args['permissions']:
+            print(perm)
             if not isinstance(perm, dict):
                 throw_error("A need item must be a dictionary")
             username = perm.get('username')
@@ -481,14 +528,18 @@ class Permissions(ProtectedResource):
                 throw_error(msg)
             try:
                 func = getattr(client, func_name)
-                func(context=app_name, needs=needs, username=username)
+                print(needs)
+                print(func(context=app_name, needs=needs, username=username))
             except Exception as e:
+                print(e)
                 throw_error(str(e))
         return throw_success("Success")
 
 
 haruba_api.add_resource(Login,
                         '/login')
+haruba_api.add_resource(Logout,
+                        '/logout')
 haruba_api.add_resource(Folder,
                         '/files/<group>',
                         '/files/<group>/<path:path>')
@@ -501,6 +552,8 @@ haruba_api.add_resource(Download,
 haruba_api.add_resource(Command,
                         '/command/<group>',
                         '/command/<group>/<path:path>')
+haruba_api.add_resource(MyZones,
+                        '/myzones')
 haruba_api.add_resource(Zones,
                         '/zone')
 haruba_api.add_resource(Permissions,

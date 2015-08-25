@@ -1,6 +1,15 @@
 import json
 from haruba.test.conftest import is_in_data, ROOT_DIR
+from unittest.mock import patch
 import os
+
+
+def declare(*args, **kwargs):
+    pass
+
+
+def retract(*args, **kwargs):
+    pass
 
 
 def test_zone(admin_client):
@@ -30,6 +39,8 @@ def test_wrong_input(admin_client):
     is_in_data(r, 'message', 'A zone entry needs a zone and path key.')
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_create_zones(admin_client):
     ac = admin_client
     command = {'zones': [{'zone': "folder2_zone",
@@ -56,6 +67,8 @@ def test_create_zones(admin_client):
     assert expected_data == data
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_create_existing_zones(admin_client):
     ac = admin_client
     command = {'zones': [{'zone': "test_zone",
@@ -67,6 +80,8 @@ def test_create_existing_zones(admin_client):
     is_in_data(r, 'message', 'This zone already exists')
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_update_zones(admin_client):
     ac = admin_client
     command = {'zones': [{'id': 2,
@@ -79,6 +94,8 @@ def test_update_zones(admin_client):
     is_in_data(r, 'message', 'Successfully updated zones')
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_update_existing_zones(admin_client):
     ac = admin_client
     command = {'zones': [{'id': 2,
@@ -91,6 +108,8 @@ def test_update_existing_zones(admin_client):
     is_in_data(r, 'message', 'This zone already exists')
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_update_zones_no_id(admin_client):
     ac = admin_client
     command = {'zones': [{'zone': "folder2_zone_edit",
@@ -102,6 +121,8 @@ def test_update_zones_no_id(admin_client):
     is_in_data(r, 'message', 'must provide a zone id')
 
 
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_update_zones_wrong_id(admin_client):
     ac = admin_client
     command = {'zones': [{'id': 999,

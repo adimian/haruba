@@ -7,6 +7,7 @@ import zipfile
 import tempfile
 import shutil
 from sigil_client import SigilClient
+from collections import defaultdict
 
 
 FILE_TYPE = 'file'
@@ -18,7 +19,7 @@ class User(object):
     def __init__(self, login, provides):
         self.login = login
         self.roles = []
-        print(provides)
+        self.zones = defaultdict(list)
         for group in provides:
             self.roles.append(group)
 
@@ -33,6 +34,10 @@ class User(object):
 
     def get_id(self):
         return self.login
+
+    def add_zone(self, permissions):
+        _, permission, zone = permissions
+        self.zones[zone].append(permission)
 
 
 def prep_json(*args, **kwargs):
@@ -81,11 +86,12 @@ def assemble_directory_contents(group, path):
     if not os.path.exists(full_path):
         return throw_not_found()
 
-    files = []
     if not os.path.isdir(full_path):
         error = "%s is not a folder" % request.url
         return throw_error(error)
 
+    folders = []
+    files = []
     for item in scandir(full_path):
         mod_date = datetime.fromtimestamp(item.stat().st_mtime)
         file_dict = {'name': item.name,
@@ -93,8 +99,13 @@ def assemble_directory_contents(group, path):
                      'is_dir': item.is_dir(),
                      'size': item.stat().st_size,
                      'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
-        files.append(file_dict)
-    return files
+        if item.is_dir():
+            file_dict['extension'] = "folder"
+            folders.append(file_dict)
+        else:
+            file_dict['extension'] = item.name.split(".")[-1]
+            files.append(file_dict)
+    return folders + files
 
 
 def delete_file_or_folder(file_or_folder):
@@ -112,6 +123,7 @@ def delete_file_or_folder(file_or_folder):
 
 
 def get_path_from_group_url(url):
+    print(url)
     if url.startswith("/"):
         url = url[1:]
     split = url.split("/")
@@ -121,6 +133,7 @@ def get_path_from_group_url(url):
 
 
 def construct_available_path(filepath_from, destination_folder):
+    print(filepath_from)
     if os.path.exists(filepath_from):
         filepath_to = os.path.join(destination_folder,
                                    os.path.basename(filepath_from))
@@ -131,7 +144,8 @@ def construct_available_path(filepath_from, destination_folder):
                 i += 1
                 fnn = "%s(%s)" % (filepath_to, i)
             filepath_to = fnn
-    return filepath_to
+        return filepath_to
+    throw_error("Path does not exist")
 
 
 # ---------------- ZIP SECTION ----------------
