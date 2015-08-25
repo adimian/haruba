@@ -1,22 +1,55 @@
 var current_zone = "";
 var current_path = "";
+var ctrl = navigator.platform.toUpperCase().indexOf('MAC')>=0?'Cmd':'Ctrl';
+
+function OptionAction(click_handler, glyph_icon, text, hotkey, divider, read, write){
+	this.click_handler = click_handler;
+	this.glyph_icon = "glyphicon option-icon " + glyph_icon;
+	this.text = text;
+	this.hotkey = hotkey;
+	// do you need read rights for this action
+	this.read = read;
+	// do you need write rights for this action
+	this.write = write;
+	// appends a divider when set to true
+	this.divider = divider;
+}
+OptionAction.prototype.can_show = function(has_read, has_write){
+	value = true;
+	if(this.read){
+		value = has_read()
+	}
+	if(this.write){
+		value = value && has_write()
+	}
+	return value;
+}
 
 function ZoneViewModel(){
-	var is_mac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
-	
 	var self = this;
-	self.ctrl = is_mac?'Cmd':'Ctrl';
-	console.log(self.ctrl)
 	self.zones = ko.observable();
 	self.folder = ko.observable();
 	self.working_folder = ko.observableArray();
 	self.selected_zone = ko.observable();
+	self.selected_zone_name = ko.observable();
 	self.breadcrumbs = ko.observableArray();
 	self.selected_items = ko.observableArray();
 	self.cut_candidates = ko.observableArray();
 	self.copy_candidates = ko.observableArray();
 	self.cut_paths = ko.observableArray();
 	self.copy_paths = ko.observableArray();
+	self.has_read = ko.computed(function(){
+		if(this.selected_zone()){			
+			return this.selected_zone().access.indexOf('read')>-1;
+		}
+		return false;
+	}, this);
+	self.has_write = ko.computed(function(){
+		if(this.selected_zone()){
+			return this.selected_zone().access.indexOf('write')>-1;
+		}
+		return false;
+	}, this);
 	hclient.zone.myzones(self.zones)
 	
 	//behaviour
@@ -36,6 +69,17 @@ function ZoneViewModel(){
 	self.download_single = function(item, evt){hclient.download.single(current_zone, current_path + "/" + item.name);};
 	self.rename = rename;
 	self.create_folder = create_folder;
+	
+	self.options = ko.observableArray([new OptionAction(self.option_upload, 'glyphicon-upload', ' Upload', "", false, true, true),
+	                                   new OptionAction(self.create_folder, 'glyphicon-plus-sign', ' New Folder', "", true, true, true),
+	                                   new OptionAction(self.prepare_copy, 'glyphicon-copy', ' Copy', ctrl+"+C", false, true, true),
+	                                   new OptionAction(self.prepare_cut, 'glyphicon-scissors', ' Cut', ctrl+"+X", false, true, true),
+	                                   new OptionAction(self.execute_copy_cut, 'glyphicon-paste', ' Paste', ctrl+"+V", true, true, true),
+	                                   new OptionAction(self.delete_items, 'glyphicon-remove', ' Delete', 'Del', false, true, true),
+	                                   new OptionAction(self.download_selected, 'glyphicon-download-alt', ' Download as Zip', "", false, true, false),]);
+	self.row_options = ko.observableArray([new OptionAction(self.rename, 'glyphicon-pencil', ' Rename', "", false, true, true),
+	                                       new OptionAction(self.delete_single, 'glyphicon-remove', ' Delete', "", false, true, true),
+	                                       new OptionAction(self.download_single, 'glyphicon-download-alt', ' Download', "", false, true, false),]);
 }
 
 var go_to_folder = function(item, evt){
@@ -48,7 +92,8 @@ var go_to_folder = function(item, evt){
 
 var load_zone = function(item, evt){
 	current_zone = item.zone;
-	zvm.selected_zone(current_zone)
+	zvm.selected_zone(item);
+	zvm.selected_zone_name(current_zone);
 	current_path = "";
 	zvm.breadcrumbs([{name: "Home", 
 		              path: current_path, 
@@ -175,6 +220,9 @@ var option_upload = function(){
 }
 
 var rename = function(item, evt){
+	console.log(item)
+	console.log(evt)
+	console.log(evt.target)
 	var fader = $("<div class='fader'></div>")
 	var input = $("<input type='text' class='form-control fader-input' value='"+item.name+"'></input>")
 	var row = $(evt.target).parent().parent();
@@ -212,7 +260,8 @@ var create_folder = function(){
 		zvm.working_folder(zvm.folder());
 		zvm.working_folder().unshift(new_folder);
 		zvm.folder(zvm.working_folder());
-		$(".file_name:contains('new_folder')").parent().find('.glyphicon-pencil').trigger('click');
+		var target = $(".file_name:contains('new_folder')").parent().find('.glyphicon-pencil');
+		rename(new_folder, {'target': target});
 	})
 }
 
