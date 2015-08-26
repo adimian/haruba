@@ -50,14 +50,12 @@ var make_upload = function(files){
   	    	el.find('.progress-bar').css(pos)
   	    	return el;
   	    }, function(el, file){
+  	    	el.remove()
   	    	data = {"name": file.name,
   	    		    "is_dir": false,
   	    		    "size": file.size,
   	    		    "modif_date": "",
   	    		    "extension": file.name.split('.').pop()}
-  	    	var folder = zvm.folder()
-  	    	folder.push(data)
-  	    	console.log(folder)
-  	    	zvm.folder(folder)
+  	    	zvm.folder.push(data)
   	    });
 }

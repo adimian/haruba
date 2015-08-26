@@ -14,7 +14,7 @@ function OptionAction(click_handler, glyph_icon, text, hotkey, divider, read, wr
 	// appends a divider when set to true
 	this.divider = divider;
 }
-OptionAction.prototype.can_show = function(has_read, has_write){
+OptionAction.prototype.can_show = function(has_read, has_write, item){
 	value = true;
 	if(this.read){
 		value = has_read()
@@ -22,14 +22,22 @@ OptionAction.prototype.can_show = function(has_read, has_write){
 	if(this.write){
 		value = value && has_write()
 	}
+	if(item && this.text == " Unzip"){
+		var ext = item.name.split('.').pop()
+		if(ext == "zip"){
+			value = value && true
+		}else{
+			value = value && false
+		}
+	}
 	return value;
 }
 
 function ZoneViewModel(){
 	var self = this;
 	self.zones = ko.observable();
-	self.folder = ko.observable();
-	self.working_folder = ko.observableArray();
+	self.folder = ko.observableArray();
+	self.complete_folder = ko.observableArray();
 	self.selected_zone = ko.observable();
 	self.selected_zone_name = ko.observable();
 	self.breadcrumbs = ko.observableArray();
@@ -38,6 +46,7 @@ function ZoneViewModel(){
 	self.copy_candidates = ko.observableArray();
 	self.cut_paths = ko.observableArray();
 	self.copy_paths = ko.observableArray();
+	self.query = ko.observable('');
 	self.has_read = ko.computed(function(){
 		if(this.selected_zone()){			
 			return this.selected_zone().access.indexOf('read')>-1;
@@ -65,10 +74,14 @@ function ZoneViewModel(){
 	self.execute_copy_cut = execute_copy_cut;
 	self.download_selected = download_selected;
 	self.option_upload = option_upload;
-	self.delete_single = function(item, evt){delete_helper([item], [item.name]);};
+	self.delete_single = function(item, evt){confirm_delete([item], [item.name]);};
 	self.download_single = function(item, evt){hclient.download.single(current_zone, current_path + "/" + item.name);};
 	self.rename = rename;
 	self.create_folder = create_folder;
+	self.unzip = unzip;
+	self.search = search;
+	self.query.subscribe(self.search);
+	self.init_search = function(){hclient.folder.content(current_zone, current_path, zvm.complete_folder)}
 	
 	self.options = ko.observableArray([new OptionAction(self.option_upload, 'glyphicon-upload', ' Upload', "", false, true, true),
 	                                   new OptionAction(self.create_folder, 'glyphicon-plus-sign', ' New Folder', "", true, true, true),
@@ -79,7 +92,8 @@ function ZoneViewModel(){
 	                                   new OptionAction(self.download_selected, 'glyphicon-download-alt', ' Download as Zip', "", false, true, false),]);
 	self.row_options = ko.observableArray([new OptionAction(self.rename, 'glyphicon-pencil', ' Rename', "", false, true, true),
 	                                       new OptionAction(self.delete_single, 'glyphicon-remove', ' Delete', "", false, true, true),
-	                                       new OptionAction(self.download_single, 'glyphicon-download-alt', ' Download', "", false, true, false),]);
+	                                       new OptionAction(self.download_single, 'glyphicon-download-alt', ' Download', "", false, true, false),
+	                                       new OptionAction(self.unzip, 'glyphicon-compressed', ' Unzip', "", false, true, true),]);
 }
 
 var go_to_folder = function(item, evt){
@@ -115,10 +129,9 @@ var go_to_breadcrumb = function(item, evt){
 
 var sort_toggle = true
 var sort_items = function(item, evt){
-	zvm.working_folder(zvm.folder())
 	sortkey = $(evt.target).data('sortkey')
 	sort_toggle = !sort_toggle
-	zvm.working_folder.sort(function(left, right) {
+	zvm.folder.sort(function(left, right) {
 		var left_name = left[sortkey]
 		var right_name = right[sortkey]
 		if(sort_toggle){
@@ -127,7 +140,6 @@ var sort_items = function(item, evt){
 			return left_name == right_name ? 0 : (left_name > right_name ? -1 : 1);
 		}
 	});
-	zvm.folder(zvm.working_folder())
 };
 
 var select_item = function(item, evt){
@@ -146,16 +158,21 @@ var delete_items = function(item, evt){
 		data.push(zvm.selected_items()[i].name)
 		to_remove.push(zvm.selected_items()[i])
 	}
-	delete_helper(to_remove, data);
+	confirm_delete(to_remove, data)
+}
+
+var confirm_delete = function(to_remove, data){
+	var text = "Are you sure you want to delete the following items? </br></br>" + data.join('</br>')
+	HDialog("Confirm delete", text, function(){
+		delete_helper(to_remove, data)
+	}, true)
 }
 
 var delete_helper = function(to_remove, data){
 	hclient.folder.remove(current_zone, current_path, data, function(){
-		zvm.working_folder(zvm.folder())
 		for(i = 0; to_remove.length > i; i++){			
-			zvm.working_folder.remove(to_remove[i])
+			zvm.folder.remove(to_remove[i])
 		}
-		zvm.folder(zvm.working_folder());
 		zvm.selected_items([]);
 	})	
 }
@@ -167,14 +184,14 @@ var construct_path = function(name){
 var prepare_copy = function(){
 	zvm.copy_paths(zvm.selected_items().map(function(e){return construct_path(e.name)}));
 	zvm.cut_paths([]);
-	zvm.copy_candidates(zvm.selected_items());
+	zvm.copy_candidates(zvm.selected_items().slice());
 	zvm.cut_candidates([]);
 }
 
 var prepare_cut = function(){
 	zvm.cut_paths(zvm.selected_items().map(function(e){return construct_path(e.name)}));
 	zvm.copy_paths([]);
-	zvm.cut_candidates(zvm.selected_items());
+	zvm.cut_candidates(zvm.selected_items().slice());
 	zvm.copy_candidates([]);
 }
 
@@ -194,18 +211,15 @@ var copy_cut_helper = function(type, list_paths, list_candidates){
 	hclient.command(current_zone, current_path, [data], function(){
 		list_paths([])
 		for(i = 0; list_candidates().length > i; i++){
-			console.log(list_candidates()[i])
-			zvm.working_folder(zvm.folder())
-			zvm.working_folder().push(list_candidates()[i])
-			zvm.folder(zvm.working_folder())
+			zvm.folder().push(list_candidates()[i])
 		}
-		list_candidates([])
+		zvm.folder.valueHasMutated();
+		list_candidates([]);
 	})
 }
 
 var download_selected = function(){
 	files = zvm.selected_items().map(function(e){return e.name})
-	console.log(files)
 	hclient.download.multi(current_zone, current_path, files)
 	zvm.selected_items([])
 }
@@ -240,9 +254,8 @@ var rename = function(item, evt){
 	    {
 	    	var new_fn = input.val();
 	        hclient.folder.rename(current_zone, current_path + "/" + item.name, new_fn, function(){
-	        	zvm.working_folder(zvm.folder());
-	        	zvm.working_folder()[zvm.working_folder().indexOf(item)].name = new_fn;
-	        	zvm.folder(zvm.working_folder());
+	        	zvm.folder()[zvm.folder().indexOf(item)].name = new_fn;
+	        	zvm.folder.valueHasMutated();
 	        	fader.remove();
 	        });
 	    }
@@ -257,13 +270,32 @@ var create_folder = function(){
 					  'size': 0,
 					  'modif_date': "",
 					  'extension': 'folder'}
-		zvm.working_folder(zvm.folder());
-		zvm.working_folder().unshift(new_folder);
-		zvm.folder(zvm.working_folder());
+		zvm.folder().unshift(new_folder);
+		zvm.folder.valueHasMutated();
 		var target = $(".file_name:contains('new_folder')").parent().find('.glyphicon-pencil');
 		rename(new_folder, {'target': target});
 	})
 }
+
+var unzip = function(item, evt){
+	data['type'] = 'unzip';
+	hclient.command(current_zone, current_path + "/" + item.name, [data], function(){
+		console.log($('.menu').find('div:contains("'+current_zone+'")'))
+		$('.menu').find('div:contains("'+current_zone+'")').trigger('click');
+	})
+}
+
+var search = function(search_str){
+	zvm.folder.removeAll();
+	var to_search_array = zvm.complete_folder()
+	for(i=0;to_search_array.length>i;i++){
+		console.log()
+		if(to_search_array[i].name.search(search_str)>-1){
+			zvm.folder.push(to_search_array[i])
+		}
+	}
+}
+
 
 $("html").bind({
 	copy : function(){

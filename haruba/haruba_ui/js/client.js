@@ -2,7 +2,7 @@ var LOGGED_IN = false;
 
 var show_error = function(xhr, ajaxOptions, thrownError){
 	error_message = JSON.parse(xhr.responseText)['message']
-	console.log(error_message)
+	HDialog("An error occured", error_message, function(){})
 };
 
 var request = function(type, url, form_data, success_func, has_json){

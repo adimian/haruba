@@ -25,9 +25,14 @@
    		    												   click: $root.go_to_breadcrumb"></div>
    		  </div>
    		</div>
-	   	<div class="listing" data-bind="with: folder">
+	   	<div class="listing" data-bind="visible: !!$root.selected_zone()">
 	   		<div class="commands">
-	   			<div class="dropdown" data-bind="with: $parent.options">
+			    <div class="input-group search-bar">
+				  <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+				  <input id="searchbar" type="text" class="form-control" placeholder="Search..." aria-describedby="basic-addon1" data-bind="value: $root.query, valueUpdate: 'keyup',
+				  																											                event: {focus: $root.init_search}">
+				</div>
+	   			<div class="dropdown" data-bind="with: $root.options">
 				  <div id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 				  	<span class="glyphicon glyphicon-option-vertical" aria-hidden="true"></span>Options
 				  </div>
@@ -51,6 +56,7 @@
 	   		  <div class="header-item width-10" data-sortkey="size" data-bind="click: $root.sort_items">Size</div>
 	   		  <div class="header-item width-15" data-sortkey="modif_date" data-bind="click: $root.sort_items">Modified</div>
 	   		</div>
+	   		<div id="folder-content" data-bind="with: folder">
 	   		  <div data-bind="foreach: $data">
 		   		<div class="list-row" data-bind="css: { folder: is_dir,
 		   												selected_item: ($root.selected_items.indexOf($data) != -1) },
@@ -68,14 +74,15 @@
 		   		   	                   clickBubble: false, 
 		   		   	                   css: glyph_icon, 
 		   		   	                   text: text, 
-		   		   	                   visible: can_show($root.has_read, $root.has_write)"></span>
+		   		   	                   visible: can_show($root.has_read, $root.has_write, $parent)"></span>
 		   		    </div>
 		   		  </div>
 		   		  <div class="row-item width-10 mild" data-bind="text: size"></div>
 		   		  <div class="row-item width-15 mild" data-bind="text: modif_date">modified</div>
 		   	    </div>
 		   	  </div>
-		    <div class='row_action_box'></div>
+			  <div class='row_action_box'></div>
+		   	</div>
 	   	</div>
 	 </div>
   </div>
