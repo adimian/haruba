@@ -1,27 +1,16 @@
-FROM ubuntu:14.04
-MAINTAINER Maarten De Paepe <maarten.de.paepe@adimian.com>
+FROM python:3.4
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH $PYTHONPATH:/code
 
-RUN DEBIAN_FRONTEND=noninteractive \
-    apt-get update -y && \
-    apt-get install -yqq \
-    python3 python3-dev libffi-dev mercurial python3-psycopg2
+RUN apt-get update && apt-get install mercurial -yq
 
-ADD https://bootstrap.pypa.io/get-pip.py /tmp/get-pip.py
-RUN python3 /tmp/get-pip.py
+RUN mkdir /code
+VOLUME /code
 
-RUN pip3 install gunicorn==19.3.0
-ADD requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt
+WORKDIR /code
+ADD requirements.txt /code/
+RUN pip install -U pip && pip install -r requirements.txt
 
-ADD . /source
+ADD . /code/
 
-ENV HARUBA_CONFIG=/etc/haruba/config.cfg
-
-ENV WORKERS=1
-ENV HOST=0.0.0.0
-ENV PORT=5000
-
-WORKDIR /source
-
-USER www-data
-CMD gunicorn --reload -w $WORKERS -b $HOST:$PORT haruba.harubad:app
+CMD python3 haruba/server.py runserver

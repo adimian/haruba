@@ -11,8 +11,10 @@ SQLAlchemy==1.0.8
 blinker==1.4
 coverage==3.7.1
 itsdangerous==0.24
+psycopg2==2.6.1
 pytest==2.7.2
 pytest-cov==2.0.0
 raven==5.5.0
 scandir==1.1
 six==1.9.0
+gunicorn==19.3.0
