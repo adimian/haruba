@@ -3,7 +3,7 @@ import os
 import json
 import shutil
 from unittest.mock import patch
-from haruba.harubad import make_app
+from haruba.harubad import app
 from haruba.database import db, Zone
 
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
@@ -77,19 +77,13 @@ def is_in_data(r, key, value):
 
 
 @pytest.fixture
-def app():
-    app = make_app('config.TestConfig')
+def client(request):
     app.config['HARUBA_SERVE_ROOT'] = os.path.join(ROOT_DIR, "srv")
     with app.app_context():
         if not db.session.query(Zone).filter_by(name="test_zone").all():
             db.session.add(Zone("test_zone", ""))
             db.session.add(Zone("folder1_zone", "folder1"))
             db.session.commit()
-    return app
-
-
-@pytest.fixture
-def client(app):
     client = app.test_client()
     return client
 
