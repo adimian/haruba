@@ -1,10 +1,13 @@
-import pytest
-import os
 import json
+import os
 import shutil
 from unittest.mock import patch
-from haruba.harubad import app
+
+import pytest
+
 from haruba.database import db, Zone
+from haruba.harubad import app
+
 
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 folder_structure = [{"folder1": ['folder1-file']},

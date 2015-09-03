@@ -1,4 +1,4 @@
-from haruba.test.conftest import is_in_data, ROOT_DIR, make_srv, remove_srv
+from conftest import is_in_data, ROOT_DIR, make_srv, remove_srv
 import os
 import json
 import zipfile

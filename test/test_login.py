@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from haruba.test.conftest import auth, wrong_auth, user_details, login
+from conftest import auth, wrong_auth, user_details, login
 
 
 @patch("sigil_client.SigilClient.login", login)

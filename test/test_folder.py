@@ -2,7 +2,7 @@ import json
 import os
 from scandir import scandir
 from datetime import datetime
-from haruba.test.conftest import ROOT_DIR, is_in_data, make_srv, remove_srv
+from conftest import ROOT_DIR, is_in_data, make_srv, remove_srv
 import shutil
 from operator import itemgetter
 

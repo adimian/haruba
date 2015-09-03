@@ -1,10 +1,13 @@
-from flask import abort, session, current_app
-from flask_principal import Principal
-from flask_login import current_user
-from flask_principal import identity_loaded, UserNeed, Permission
 from functools import wraps
-from haruba.utils import get_group_root
+
+from flask import abort, session, current_app
+from flask_login import current_user
+from flask_principal import Principal
+from flask_principal import identity_loaded, UserNeed, Permission
 from sigil_client import SigilApplication
+
+from .utils import get_group_root
+
 
 principal = Principal()
 ZONE_CONTEXT = 'zone'

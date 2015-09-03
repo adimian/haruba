@@ -1,11 +1,13 @@
-from flask import Flask, send_from_directory
-from raven.contrib.flask import Sentry
 import os
 
-from haruba.api import haruba_api, login_manager
-from haruba.permissions import principal, set_identity_loader
-from haruba.database import db
-from haruba.conf import configure
+from flask import Flask, send_from_directory
+from raven.contrib.flask import Sentry
+
+from .api import haruba_api, login_manager
+from .conf import configure
+from .database import db
+from .permissions import principal, set_identity_loader
+
 
 app = Flask(__name__)
 configure(app)

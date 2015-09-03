@@ -1,6 +1,6 @@
 from unittest.mock import patch
 import json
-from haruba.test.conftest import is_in_data
+from conftest import is_in_data
 
 USER_LIST = {'users': [{'username': 'alice',
                         'display_name':

@@ -1,6 +1,6 @@
 import zipfile
 from io import BytesIO
-from haruba.test.conftest import is_in_data
+from conftest import is_in_data
 
 
 def test_download_file(authenticated_client):

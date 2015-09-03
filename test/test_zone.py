@@ -1,5 +1,5 @@
 import json
-from haruba.test.conftest import is_in_data, ROOT_DIR
+from conftest import is_in_data, ROOT_DIR
 from unittest.mock import patch
 import os
 
