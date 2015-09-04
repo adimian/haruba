@@ -24,6 +24,7 @@ def serve(path=""):
     return send_from_directory(path, file)
 
 haruba_api.init_app(app)
+haruba_api.prefix = app.config['API_URL_PREFIX']
 principal.init_app(app)
 set_identity_loader(app)
 login_manager.init_app(app)
