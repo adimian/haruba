@@ -6,7 +6,9 @@ from unittest.mock import patch
 import pytest
 
 from haruba.database import db, Zone
-from haruba.harubad import app
+from haruba.harubad import app, setup_endpoints
+
+setup_endpoints()
 
 
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))

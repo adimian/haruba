@@ -2,7 +2,9 @@ from flask_script import Manager, Server, prompt_pass, prompt
 from sigil_client import SigilClient, SigilApplication
 
 from haruba.database import db
-from haruba.harubad import app
+from haruba.harubad import app, setup_endpoints
+
+setup_endpoints()
 
 
 @app.before_first_request
@@ -37,7 +39,7 @@ def register():
                      credentials={'username': username,
                                   'password': password})
     else:
-        print('aborting')
+        print('no username or password given, aborting')
 
 if __name__ == "__main__":
     manager.run()

@@ -15,19 +15,18 @@ from werkzeug.datastructures import FileStorage
 
 from .database import db, Zone
 from .permissions import (has_read, has_write, has_admin_read,
-                                has_admin_write, declare_zone_permissions,
-                                retract_zone_permissions)
+                          has_admin_write, declare_zone_permissions,
+                          retract_zone_permissions)
 from .utils import (User, assemble_directory_contents, get_group_root,
-                          throw_success, throw_error, throw_not_found, unzip,
-                          make_zip, make_selective_zip, delete_file_or_folder,
-                          get_path_from_group_url, construct_available_path,
-                          throw_unauthorised, prep_json, get_sigil_client)
+                    throw_success, throw_error, throw_not_found, unzip,
+                    make_zip, make_selective_zip, delete_file_or_folder,
+                    get_path_from_group_url, construct_available_path,
+                    throw_unauthorised, prep_json, get_sigil_client)
 
 
 logger = logging.getLogger(__name__)
 logger.level = logging.DEBUG
 
-haruba_api = Api()
 login_manager = LoginManager()
 
 
@@ -536,25 +535,3 @@ class Permissions(ProtectedResource):
         return throw_success("Success")
 
 
-haruba_api.add_resource(Login,
-                        '/login')
-haruba_api.add_resource(Logout,
-                        '/logout')
-haruba_api.add_resource(Folder,
-                        '/files/<group>',
-                        '/files/<group>/<path:path>')
-haruba_api.add_resource(Upload,
-                        '/upload/<group>',
-                        '/upload/<group>/<path:path>')
-haruba_api.add_resource(Download,
-                        '/download/<group>',
-                        '/download/<group>/<path:path>')
-haruba_api.add_resource(Command,
-                        '/command/<group>',
-                        '/command/<group>/<path:path>')
-haruba_api.add_resource(MyZones,
-                        '/myzones')
-haruba_api.add_resource(Zones,
-                        '/zone')
-haruba_api.add_resource(Permissions,
-                        '/permissions')
