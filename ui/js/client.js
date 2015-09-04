@@ -34,7 +34,7 @@ var get = function(url, success_func){
 	request('get', url, [], success_func)};
 
 function HRequest(){
-	this.service_url = "http://localhost:5000";
+	this.service_url = "/haruba-api";
 };
 
 HRequest.prototype.get_url = function(base, group, path){
