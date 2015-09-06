@@ -5,7 +5,7 @@
   	  <div class="header-menu-item" data-bind="click: $root.logout">
   	    <span class="glyphicon glyphicon glyphicon-off"></span> logout
   	  </div>
-  	  <div class="header-menu-item">
+  	  <div class="header-menu-item" data-bind="click: $root.load_admin">
   	    <span class="glyphicon glyphicon glyphicon-cog"></span> Admin
   	  </div>
   	</div>
@@ -88,6 +88,10 @@
   </div>
 </div>
 <div class="upload-marker"><span>Upload</span></div>
+<script src="js/appviewmodel.js"></script>
+<script src="js/dragdrop.js"></script>
 <script>
+ko.cleanNode($('html')[0]);
 ko.applyBindings(zvm);
+attach_bindings();
 </script>

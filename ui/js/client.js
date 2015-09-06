@@ -34,7 +34,7 @@ var get = function(url, success_func){
 	request('get', url, [], success_func)};
 
 function HRequest(){
-	this.service_url = "/haruba-api";
+	this.service_url = "http://localhost:5000";
 };
 
 HRequest.prototype.get_url = function(base, group, path){
@@ -52,21 +52,19 @@ HRequest.prototype.get_url = function(base, group, path){
 // ---------------------PERMISSIONS---------------------
 function HPermissions(){};
 HPermissions.prototype = new HRequest();
-HPermissions.prototype.get_users = function(){
+HPermissions.prototype.get_users = function(success_func){
 	get(this.get_url("/permissions"), function(data, text, xrh){
-		console.log(data);
+		success_func(data)
 	});
 };
-HPermissions.prototype.grant = function(username, needs){
-	data = JSON.stringify({'permissions': [{'username': username,
-							 				'needs': needs}]});
+HPermissions.prototype.grant = function(permissions){
+	data = JSON.stringify({'permissions': permissions});
 	post(this.get_url("/permissions"), data, function(data, text, xrh){
 		console.log(data);
 	}, true);
 };
-HPermissions.prototype.withdraw = function(username, needs){
-	data = JSON.stringify({'permissions': [{'username': username,
-		 					 				'needs': needs}]});
+HPermissions.prototype.withdraw = function(permissions){
+	data = JSON.stringify({'permissions': permissions});
 	del(this.get_url("/permissions"), data, function(data, text, xrh){
 		console.log(data);
 	}, true);
@@ -122,9 +120,9 @@ HZone.prototype.myzones = function(success_func){
 		console.log(data);
 	});
 };
-HZone.prototype.zones = function(){		
+HZone.prototype.zones = function(success_func){		
 	get(this.get_url("/zone"), function(data, text, xrh){
-		console.log(data);
+		success_func(data);
 	});
 };
 HZone.prototype.create = function(zones){
@@ -203,7 +201,7 @@ HClient.prototype.upload = function(group, path, files, extra_data, progress_fun
 	            return myXhr;
 	        },
 	        success: bind,
-	        error: show_error,
+	        error: function(xhr, ajaxOptions, thrownError){el.remove(); show_error(xhr, ajaxOptions, thrownError)},
 	        data: formData,
 	        cache: false,
 	        contentType: false,

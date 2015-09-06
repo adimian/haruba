@@ -81,7 +81,8 @@ function ZoneViewModel(){
 	self.unzip = unzip;
 	self.search = search;
 	self.query.subscribe(self.search);
-	self.init_search = function(){hclient.folder.content(current_zone, current_path, zvm.complete_folder)}
+	self.load_admin = function(){$.get("/admin.html", function(data){ $("body").html(data);})};
+	self.init_search = function(){hclient.folder.content(current_zone, current_path, zvm.complete_folder)};
 	
 	self.options = ko.observableArray([new OptionAction(self.option_upload, 'glyphicon-upload', ' Upload', "", false, true, true),
 	                                   new OptionAction(self.create_folder, 'glyphicon-plus-sign', ' New Folder', "", true, true, true),
@@ -253,6 +254,10 @@ var rename = function(item, evt){
 	    if(e.keyCode == 13)
 	    {
 	    	var new_fn = input.val();
+	    	if(new_fn == item.name){
+	    		fader.remove();
+	    		return;
+	    	}
 	        hclient.folder.rename(current_zone, current_path + "/" + item.name, new_fn, function(){
 	        	zvm.folder()[zvm.folder().indexOf(item)].name = new_fn;
 	        	zvm.folder.valueHasMutated();
@@ -297,29 +302,35 @@ var search = function(search_str){
 }
 
 
-$("html").bind({
-	copy : function(){
-		if(current_zone){			
-			prepare_copy();
-		}
-	},
-	paste : function(){
-		if(current_zone){			
-			execute_copy_cut();
-		}
-	},
-	cut : function(){
-		if(current_zone){			
-			prepare_cut();
-		}
-	},
-	keyup: function(e){
-		if(current_zone){
-			if(e.keyCode == 46){
-				delete_items();
+var attach_bindings = function(){
+	console.log("attaching bindings")
+	$("html").bind({
+		copy : function(){
+			console.log("copy");
+			if(current_zone){
+				console.log("copy");
+				prepare_copy();
 			}
-		}
-	},
-});
+		},
+		paste : function(){
+			if(current_zone){			
+				execute_copy_cut();
+			}
+		},
+		cut : function(){
+			if(current_zone){			
+				prepare_cut();
+			}
+		},
+		keyup: function(e){
+			console.log("copy");
+			if(current_zone){
+				if(e.keyCode == 46){
+					delete_items();
+				}
+			}
+		},
+	});
+}
 
 var zvm = new ZoneViewModel()

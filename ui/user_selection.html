@@ -1,0 +1,30 @@
+    <div id="dialog-user-list" style="width: 600px;">
+      <div class="admin_title">Selected users</div>
+        <div id="folder-content" data-bind="with: user_dialog_selected">
+	   	  <div data-bind="foreach: $data">
+		    <div class="list-row" data-bind="click: $root.remove_from_selected_users">
+		   	  <div class="row-item width-50" data-bind="text: display_name + ' (' + username + ')'"></div>
+		    </div>
+		    <div class='row_action_box'></div>
+		  </div>
+		</div>
+      <div class="admin_title">Users</div>
+      <div class="admin-table">
+        <div class="list-row header-row">
+	   	  <div class="header-item">
+	   	    <div class="input-group admin-search-bar" style="width: 100%;">
+		      <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+			  <input id="searchbar" type="text" class="form-control" placeholder="Search user..." data-bind="value: $root.query_dialog, valueUpdate: 'keyup'">
+			</div>
+	   	  </div>
+	   	</div>
+	   	<div id="folder-content" data-bind="with: user_dialog_candidates">
+	   	  <div data-bind="foreach: $data">
+		    <div class="list-row" data-bind="click: $root.add_to_selected_users">
+		   	  <div class="row-item width-50" data-bind="text: display_name + ' (' + username + ')'"></div>
+		    </div>
+		    <div class='row_action_box'></div>
+		  </div>
+		</div>
+      </div>
+    </div>

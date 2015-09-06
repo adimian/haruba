@@ -12,11 +12,12 @@ from flask_restful import Resource, Api, reqparse, inputs
 from sigil_client import SigilClient
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.datastructures import FileStorage
+from collections import defaultdict
 
 from .database import db, Zone
 from .permissions import (has_read, has_write, has_admin_read,
                           has_admin_write, declare_zone_permissions,
-                          retract_zone_permissions)
+                          retract_zone_permissions, ZONE_CONTEXT)
 from .utils import (User, assemble_directory_contents, get_group_root,
                     throw_success, throw_error, throw_not_found, unzip,
                     make_zip, make_selective_zip, delete_file_or_folder,
@@ -484,6 +485,17 @@ class Permissions(ProtectedResource):
         app_name = current_app.config['SIGIL_APP_NAME']
         try:
             users = client.list_users(context=app_name)
+            # TODO: needs to be replaced by the newly implemented search
+            # function in sigil
+            for user in users['users']:
+                permissions = client.provides(context=app_name,
+                                              username=user['username'])
+                zone_permissions = defaultdict(list)
+                for permission in permissions['provides']:
+                    perm = list(permission)
+                    if perm[0] == ZONE_CONTEXT:
+                        zone_permissions[perm[2]].append(perm[1])
+                user['permissions'] = zone_permissions
         except Exception as e:
             throw_error(str(e))
         return users
