@@ -27,8 +27,8 @@ def configure(app):
     set_default('SECRET_KEY', 'secret-key')
     set_default('SENTRY_DSN', '')
 
-    set_default('SIGIL_APP_KEY', '')
-    set_default('SIGIL_API_URL', 'http://docker.dev/sigil-api/')
+    set_default('SIGIL_APP_KEY', 'WzIsImZmMjM5YzU0ZDBmMzBlNDQ2N2ZmNGYzN2M5NmNkZmQxIl0.CNAp1A.uzrhvwHG5xZuFnITHdkaH3_6dd4')
+    set_default('SIGIL_API_URL', 'http://docker.dev/sigil-api')  # no trailing slash
     set_default('SIGIL_APP_NAME', 'haruba')
     set_default('HARUBA_SERVE_ROOT', '/tmp/haruba')
     set_default('HARUBA_ZONE_DEFAULT', 'data')

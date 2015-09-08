@@ -94,6 +94,6 @@ def set_identity_loader(app):
 
         for role in session.get('provides', []):
             permissions = list(role)
-            if permissions[0] == ZONE_CONTEXT:
+            if len(permissions) == 3 and permissions[0] == ZONE_CONTEXT:
                 current_user.add_zone(permissions)
             identity.provides.add(tuple(role))

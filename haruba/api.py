@@ -100,7 +100,6 @@ class Folder(ProtectedResource):
         """
         returns a list of files and directories at the given path
         """
-        print("in get folder")
         return assemble_directory_contents(group, path)
 
     @has_write

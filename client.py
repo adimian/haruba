@@ -1,11 +1,14 @@
-import json
+import os
+from tempfile import mkstemp
+from io import IOBase
 
 import requests
+from sigil_client import SigilClient
+
 
 # for debugging purpose
 # import http
 # http.client.HTTPConnection.debuglevel = 1
-
 
 class ApiError(Exception):
     def __init__(self, message, status_code):
@@ -28,12 +31,6 @@ class Requester(object):
         return ''.join((self.base, piece))
 
     def request(self, method, piece, **kwargs):
-        if kwargs.get('json'):
-            del kwargs['json']
-            kwargs['data'] = json.dumps(kwargs['data'])
-            kwargs.setdefault('headers', {}).update({'Content-Type':
-                                                     'application/json'})
-
         r = self.s.request(method, self.to(piece), **kwargs)
         if r.status_code == 200:
             return r
@@ -48,26 +45,50 @@ class Zone(Requester):
         self.path = path
 
     def update(self, name=None, path=None):
-        pass
+        raise NotImplementedError()
 
     def __repr__(self):
         return '<Zone object id:{} name:{} path:/{}>'.format(self.id,
                                                              self.name,
                                                              self.path)
 
-    def new_folder(self, name):
+    def new_folder(self, name, quiet=False):
         url = "/files/{}/{}".format(self.name, name)
-        self.request('post', url)
+        try:
+            self.request('post', url)
+        except ApiError as err:
+            if err.status_code != 400 or not quiet:
+                raise
 
     def __getitem__(self, name):
-        pass
+        return Folder(zone=self, name=name)
 
 
 class Folder(Requester):
-    def __init__(self, zone, name, path):
+    def __init__(self, zone, name):
         self.zone = zone
         self.name = name
-        self.path = path
+        self.path = '/'.join((zone.path, name))
+
+    def __repr__(self):
+        return '<Folder object name:{} path:/{}>'.format(self.name,
+                                                         self.path)
+
+    def list(self):
+        r = self.request('get', '/files/{}'.format(self.path))
+        return r.json()
+
+    def upload(self, content):
+        if not isinstance(content, (list, tuple)):
+            content = [content]
+        self._upload(content)
+
+    def _upload(self, files):
+        for fileobj in files:
+            if isinstance(fileobj, str):
+                fileobj = open(fileobj, 'rb')
+            self.request('post', '/upload/{}'.format(self.path),
+                         files={'files': fileobj})
 
     def download_as_zip(self):
         pass
@@ -106,16 +127,35 @@ class HarubaClient(Requester):
 
     def create_zone(self, name, path):
         payload = {'zones': [{'zone': name, 'path': path}]}
-        self.request('post', '/zone', data=payload, json=True)
+        self.request('post', '/zone', json=payload)
 
     def __getitem__(self, name):
         return self.zones[name]
 
 if __name__ == '__main__':
+    s = SigilClient(url='http://docker.dev/sigil-api',
+                    username='eric', password='secret')
+    s.new_app('haruba', quiet=True)
+
+    print(s.provides('haruba'))
+
+    s.grant('haruba', needs=[['zone', 'read'],
+                             ['zone', 'write'],
+                             ['permissions', 'read'],
+                             ['permissions', 'write']])
+
     c = HarubaClient(url='http://localhost:5000',
                      login='eric', password='secret')
     if 'dropbox' not in c.zones:
         c.create_zone('dropbox', '/dropbox')
+        s.grant('haruba', needs=(('zone', 'read', 'dropbox'),
+                                 ('zone', 'write', 'dropbox'),))
     dropbox = c['dropbox']
-    dropbox.new_folder('eric')
-    f = dropbox['eric']
+    dropbox.new_folder('eric', quiet=True)
+    folder = dropbox['eric']
+    fd, tmp_file = mkstemp(suffix='.txt', prefix='haruba_test_')
+    os.close(fd)
+    with open(tmp_file, 'w') as f:
+        f.write('hello world')
+    folder.upload(tmp_file)
+    print(folder.list())

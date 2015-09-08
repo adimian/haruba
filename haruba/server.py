@@ -3,6 +3,8 @@ from sigil_client import SigilClient, SigilApplication
 
 from haruba.database import db
 from haruba.harubad import app, setup_endpoints
+import logging
+logger = logging.getLogger('haruba.server')
 
 setup_endpoints()
 
@@ -10,6 +12,10 @@ setup_endpoints()
 @app.before_first_request
 def create_db():
     db.create_all()
+    if app.config['SIGIL_APP_KEY'] and app.config['SIGIL_API_URL']:
+        print('updating needs')
+        update_needs(url=app.config['SIGIL_API_URL'],
+                     app_key=app.config['SIGIL_APP_KEY'])
 
 
 manager = Manager(app)
@@ -21,12 +27,15 @@ def register_app(url, app_name, credentials):
     client = SigilClient(url, **credentials)
     client.login()
     app_key = client.new_app(app_name)
-    application = SigilApplication(url, app_key)
+    update_needs(app_key)
 
+
+def update_needs(url, app_key):
+    application = SigilApplication(url, app_key)
     needs = (('zone', 'write'),
              ('zone', 'read'))
     updated_needs = application.declare(needs)
-    print(updated_needs)
+    logger.info('updated needs: {}'.format(updated_needs))
 
 
 @manager.command
