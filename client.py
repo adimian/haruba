@@ -64,11 +64,31 @@ class Zone(Requester):
         return Folder(zone=self, name=name)
 
 
-class Folder(Requester):
+class Transferrable(object):
+
+    def _upload(self, files):
+        for fileobj in files:
+            if isinstance(fileobj, str):
+                fileobj = open(fileobj, 'rb')
+            self.request('post', '/upload/{}'.format(self.path),
+                         files={'files': fileobj})
+
+    def _download(self):
+        r = self.request('get', '/download/{}'.format(self.path))
+        return r.content
+
+    def download(self):
+        return self._download()
+
+
+class Folder(Requester, Transferrable):
     def __init__(self, zone, name):
         self.zone = zone
         self.name = name
-        self.path = '/'.join((zone.path, name))
+
+    @property
+    def path(self):
+        return '/'.join((self.zone.path, self.name))
 
     def __repr__(self):
         return '<Folder object name:{} path:/{}>'.format(self.name,
@@ -83,24 +103,28 @@ class Folder(Requester):
             content = [content]
         self._upload(content)
 
-    def _upload(self, files):
-        for fileobj in files:
-            if isinstance(fileobj, str):
-                fileobj = open(fileobj, 'rb')
-            self.request('post', '/upload/{}'.format(self.path),
-                         files={'files': fileobj})
-
-    def download_as_zip(self):
-        pass
-
     def rename(self):
-        pass
+        raise NotImplementedError()
 
     def delete(self):
-        pass
+        self.request('delete', '/files/{}'.format(self.path))
 
     def __getitem__(self, name):
-        pass
+        return File(folder=self, name=name)
+
+
+class File(Requester, Transferrable):
+    def __init__(self, folder, name):
+        self.folder = folder
+        self.name = name
+
+    @property
+    def path(self):
+        return '/'.join((self.folder.path, self.name))
+
+    def __repr__(self):
+        return '<File object name:{} path:/{}>'.format(self.name,
+                                                       self.path)
 
 
 class HarubaClient(Requester):
@@ -137,8 +161,6 @@ if __name__ == '__main__':
                     username='eric', password='secret')
     s.new_app('haruba', quiet=True)
 
-    print(s.provides('haruba'))
-
     s.grant('haruba', needs=[['zone', 'read'],
                              ['zone', 'write'],
                              ['permissions', 'read'],
@@ -158,4 +180,7 @@ if __name__ == '__main__':
     with open(tmp_file, 'w') as f:
         f.write('hello world')
     folder.upload(tmp_file)
-    print(folder.list())
+    some_file_info = folder.list()[-1]
+    that_file = folder[some_file_info['name']]
+    content = that_file.download()
+    print(content)
