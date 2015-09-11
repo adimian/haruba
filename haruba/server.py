@@ -11,6 +11,7 @@ setup_endpoints()
 
 @app.before_first_request
 def create_db():
+    print("creating db")
     db.create_all()
     if app.config['SIGIL_APP_KEY'] and app.config['SIGIL_API_URL']:
         print('updating needs')

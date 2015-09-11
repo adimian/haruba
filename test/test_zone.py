@@ -2,6 +2,14 @@ import json
 from conftest import is_in_data, ROOT_DIR
 from unittest.mock import patch
 import os
+import copy
+
+PROVIDES = {'provides': [('zone', 'read', 'some_zone'),
+                         ('zone', 'write', 'some_zone')]}
+
+
+def permissions(*args, **kwargs):
+    return copy.deepcopy(PROVIDES)
 
 
 def declare(*args, **kwargs):
@@ -133,3 +141,12 @@ def test_update_zones_wrong_id(admin_client):
                content_type='application/json')
     r.status_code = 200
     is_in_data(r, 'message', "Zone id '999' does not exist")
+
+
+@patch("sigil_client.SigilClient.provides", permissions)
+def test_my_zones(authenticated_client):
+    ac = authenticated_client
+    r = ac.get("/myzones")
+    r.status_code = 200
+    data = json.loads(r.data.decode('utf-8'))
+    assert data == [{'access': ['read', 'write'], 'zone': 'test_zone'}]

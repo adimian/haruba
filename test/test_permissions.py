@@ -1,17 +1,25 @@
 from unittest.mock import patch
 import json
+import copy
 from conftest import is_in_data
 
 USER_LIST = {'users': [{'username': 'alice',
-                        'display_name':
-                        'alice alice', 'id': 1},
+                        'display_name': 'alice alice',
+                        'id': 1},
                        {'username': 'bernard',
-                        'display_name':
-                        'bernard bernard', 'id': 2}]}
+                        'display_name': 'bernard bernard',
+                        'id': 2}]}
+
+PROVIDES = {'provides': [('zone', 'read', 'some_zone'),
+                         ('zone', 'write', 'some_zone')]}
 
 
 def users(*args, **kwargs):
-    return USER_LIST
+    return copy.deepcopy(USER_LIST)
+
+
+def permissions(*args, **kwargs):
+    return copy.deepcopy(PROVIDES)
 
 
 def users_error(*args, **kwargs):
@@ -19,11 +27,17 @@ def users_error(*args, **kwargs):
 
 
 @patch("sigil_client.SigilClient.list_users", users)
+@patch("sigil_client.SigilClient.provides", permissions)
 def test_get_permissions(admin_client):
     ac = admin_client
     r = ac.get("/permissions")
     data = json.loads(r.data.decode('utf-8'))
-    assert data == USER_LIST
+    userlist = copy.deepcopy(USER_LIST)
+    for user in userlist['users']:
+        user['permissions'] = {'some_zone': ['read', 'write']}
+    print(data)
+    print(userlist)
+    assert data == userlist
 
 
 @patch("sigil_client.SigilClient.login", users_error)

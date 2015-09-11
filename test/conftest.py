@@ -85,6 +85,7 @@ def is_in_data(r, key, value):
 def client(request):
     app.config['HARUBA_SERVE_ROOT'] = os.path.join(ROOT_DIR, "srv")
     with app.app_context():
+        db.create_all()
         if not db.session.query(Zone).filter_by(name="test_zone").all():
             db.session.add(Zone("test_zone", ""))
             db.session.add(Zone("folder1_zone", "folder1"))
