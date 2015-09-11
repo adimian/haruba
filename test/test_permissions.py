@@ -1,7 +1,9 @@
 from unittest.mock import patch
 import json
 import copy
-from conftest import is_in_data
+import pytest
+
+is_in_data = pytest.is_in_data
 
 USER_LIST = {'users': [{'username': 'alice',
                         'display_name': 'alice alice',

@@ -1,7 +1,12 @@
-from conftest import ROOT_DIR, is_in_data, remove_srv, make_srv
 from io import BytesIO
 import os
 import zipfile
+import pytest
+
+ROOT_DIR = pytest.ROOT_DIR
+is_in_data = pytest.is_in_data
+make_srv = pytest.make_srv
+remove_srv = pytest.remove_srv
 
 
 def prepare_uploads():

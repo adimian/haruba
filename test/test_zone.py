@@ -1,8 +1,11 @@
 import json
-from conftest import is_in_data, ROOT_DIR
+import pytest
 from unittest.mock import patch
 import os
 import copy
+
+ROOT_DIR = pytest.ROOT_DIR
+is_in_data = pytest.is_in_data
 
 PROVIDES = {'provides': [('zone', 'read', 'some_zone'),
                          ('zone', 'write', 'some_zone')]}

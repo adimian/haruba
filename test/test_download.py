@@ -1,6 +1,8 @@
 import zipfile
 from io import BytesIO
-from conftest import is_in_data
+import pytest
+
+is_in_data = pytest.is_in_data
 
 
 def test_download_file(authenticated_client):

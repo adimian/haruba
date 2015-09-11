@@ -1,5 +1,25 @@
 from unittest.mock import patch
-from conftest import auth, wrong_auth, user_details, login
+
+
+def login(*args, **kwargs):
+    print('logged in')
+
+
+def user_details(*args, **kwargs):
+    return {'id': 1,
+            'username': 'test',
+            'firstname': 'test',
+            'lastname': 'test',
+            'displayname': 'test test'}
+
+
+def auth(*args, **kwargs):
+    return {'provides': [['zone', 'read', 'test_zone'],
+                         ['zone', 'write', 'test_zone']]}
+
+
+def wrong_auth(*args, **kwargs):
+    return {}
 
 
 @patch("sigil_client.SigilClient.login", login)

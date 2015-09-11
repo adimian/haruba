@@ -112,3 +112,10 @@ def admin_client(client):
     client.post('/login', data={'login': 'me',
                                 'password': 'Secret'})
     return client
+
+
+def pytest_namespace():
+    return {'ROOT_DIR': ROOT_DIR,
+            'is_in_data': is_in_data,
+            'make_srv': make_srv,
+            'remove_srv': remove_srv}

@@ -1,7 +1,12 @@
-from conftest import is_in_data, ROOT_DIR, make_srv, remove_srv
+import pytest
 import os
 import json
 import zipfile
+
+ROOT_DIR = pytest.ROOT_DIR
+is_in_data = pytest.is_in_data
+make_srv = pytest.make_srv
+remove_srv = pytest.remove_srv
 
 
 def base_command(command, ac):

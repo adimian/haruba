@@ -2,9 +2,14 @@ import json
 import os
 from scandir import scandir
 from datetime import datetime
-from conftest import ROOT_DIR, is_in_data, make_srv, remove_srv
+import pytest
 import shutil
 from operator import itemgetter
+
+ROOT_DIR = pytest.ROOT_DIR
+is_in_data = pytest.is_in_data
+make_srv = pytest.make_srv
+remove_srv = pytest.remove_srv
 
 
 def test_get_files(authenticated_client):
