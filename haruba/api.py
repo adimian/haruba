@@ -4,11 +4,11 @@ import os
 from os.path import isfile
 import shutil
 
-from flask import current_app, session, send_file, request
+from flask import current_app, session, send_file, request, abort
 from flask_login import LoginManager
 from flask_login import login_required, login_user, current_user, logout_user
 from flask_principal import Identity, identity_changed
-from flask_restful import Resource, Api, reqparse, inputs
+from flask_restful import Resource, reqparse, inputs
 from sigil_client import SigilClient
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.datastructures import FileStorage
@@ -19,10 +19,10 @@ from .permissions import (has_read, has_write, has_admin_read,
                           has_admin_write, declare_zone_permissions,
                           retract_zone_permissions, ZONE_CONTEXT)
 from .utils import (User, assemble_directory_contents, get_group_root,
-                    throw_success, throw_error, throw_not_found, unzip,
+                    success, unzip,
                     make_zip, make_selective_zip, delete_file_or_folder,
                     get_path_from_group_url, construct_available_path,
-                    throw_unauthorised, prep_json, get_sigil_client)
+                    prep_json, get_sigil_client)
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class Login(Resource):
             identity_changed.send(current_app._get_current_object(),
                                   identity=Identity(login))
             return ("success", 200)
-        throw_unauthorised("Could not log in")
+        abort(401, "Could not log in")
 
 
 class ProtectedResource(Resource):
@@ -113,13 +113,13 @@ class Folder(ProtectedResource):
         full_path = os.path.join(root, path)
 
         if not os.path.exists(full_parent_path):
-            throw_error("%s does not exist" % parent)
+            abort(400, "%s does not exist" % parent)
         if os.path.exists(full_path):
-            throw_error("%s already exists" % path)
+            abort(400, "%s already exists" % path)
 
         os.mkdir(os.path.join(root, path))
         message = "Successfully created folder '%s'" % os.path.basename(path)
-        return throw_success(message)
+        return success(message)
 
     @has_write
     def put(self, group, group_root, path=""):
@@ -133,27 +133,27 @@ class Folder(ProtectedResource):
         new_name = args['rename_to']
         file_path = os.path.join(group_root, path)
         if not os.path.exists(file_path):
-            throw_error("%s does not exist" % path)
+            abort(400, "%s does not exist" % path)
 
         new_path = os.path.join(os.path.dirname(file_path), new_name)
         print(new_path)
         if os.path.exists(new_path):
-            throw_error(("%s already exists at %s"
-                         % (new_name, os.path.dirname(path))))
+            abort(400, ("%s already exists at %s"
+                        % (new_name, os.path.dirname(path))))
         self.rename(file_path, new_name)
-        return throw_success("Successfully renamed to %s" % args['rename_to'])
+        return success("Successfully renamed to %s" % args['rename_to'])
 
     def rename(self, path, new_name):
         old_path = path
         new_path = os.path.join(os.path.dirname(path), new_name)
         if os.path.exists(new_path):
-            throw_error("%s already exists." % request.url)
+            abort(400, "%s already exists." % request.url)
         else:
             try:
                 os.rename(old_path, new_path)
             except Exception as e:
                 print(e)
-                throw_error("Could not rename %s" % request.url)
+                abort(400, "Could not rename %s" % request.url)
 
     @has_write
     def delete(self, group, group_root, path=""):
@@ -165,11 +165,11 @@ class Folder(ProtectedResource):
         """
         full_path = os.path.join(group_root, path)
         if not os.path.exists(full_path):
-            throw_error("%s does not exist" % path)
+            abort(400, "%s does not exist" % path)
         if os.path.isfile(full_path):
             if not delete_file_or_folder(full_path):
                 message = "Could not delete: %s" % os.path.basename(full_path)
-                throw_error(message)
+                abort(400, message)
         else:
             parser = reqparse.RequestParser()
             parser.add_argument('files_to_delete', type=list, location='json')
@@ -186,8 +186,8 @@ class Folder(ProtectedResource):
                     undeleted_files.append(os.path.basename(full_path))
             if undeleted_files:
                 message = "Could not delete: %s" % ", ".join(undeleted_files)
-                throw_error(message)
-        return throw_success("Successfully deleted %s" % path)
+                abort(400, message)
+        return success("Successfully deleted %s" % path)
 
 
 class MyZones(ProtectedResource):
@@ -216,7 +216,7 @@ class Upload(ProtectedWriteResource):
 
         full_path = os.path.join(group_root, path)
         if not os.path.isdir(full_path):
-            throw_error("%s is not a folder" % request.url)
+            abort(400, "%s is not a folder" % request.url)
         for filestorage in args['files']:
             file_name = filestorage.filename
             file_path = os.path.join(full_path, file_name)
@@ -228,7 +228,7 @@ class Upload(ProtectedWriteResource):
                 unzip(file_path, full_path, args['delete_zip_after_unpack'])
 
         message = "Successfully uploaded to '%s'" % os.path.basename(path)
-        return throw_success(message)
+        return success(message)
 
 
 class Download(ProtectedReadResource):
@@ -239,7 +239,7 @@ class Download(ProtectedReadResource):
         print("in single download")
         filepath = os.path.join(group_root, path)
         if not os.path.exists(filepath):
-            throw_not_found()
+            abort(404, 'Not Found: %s' % request.url)
 
         if not isfile(filepath):
             filepath = make_zip(filepath, filepath)
@@ -277,8 +277,8 @@ class Download(ProtectedReadResource):
             files.append(filepath)
             if do_not_exist:
                 message = "Following files could not be found at %s: %s"
-                throw_error(message % (request.url,
-                                       ", ".join(do_not_exist)))
+                abort(400, message % (request.url,
+                                      ", ".join(do_not_exist)))
 
         filepath = make_selective_zip(zip_name, base_path, files)
         return send_file(filepath,
@@ -316,16 +316,16 @@ class Command(ProtectedWriteResource):
 
             cmd = command.get('type', '').lower()
             if not cmd:
-                throw_error("Must provide a command type")
+                abort(400, "Must provide a command type")
 
             try:
                 func, params = cmds[cmd]
             except KeyError:
-                throw_error("'%s' is not a valid comand" % cmd)
+                abort(400, "'%s' is not a valid comand" % cmd)
 
             func(command, **params)
 
-        return throw_success("Successfully executed commands")
+        return success("Successfully executed commands")
 
     def prepare_command(self, command, full_path):
         msg = "Input must be a dict containing 'type' and 'from' keys"
@@ -333,9 +333,9 @@ class Command(ProtectedWriteResource):
             try:
                 command = json.loads(command)
             except ValueError:
-                throw_error("%s, not string" % msg)
+                abort(400, "%s, not string" % msg)
         if not isinstance(command, dict):
-            throw_error("%s, not %s" % (msg, type(command).__name__))
+            abort(400, "%s, not %s" % (msg, type(command).__name__))
         if command.get('to'):
             original_path = command['to']
             command['to'] = get_path_from_group_url(command['to'])
@@ -343,13 +343,13 @@ class Command(ProtectedWriteResource):
             original_path = request.path
             command['to'] = full_path
         if not os.path.exists(command['to']):
-            throw_error("%s does not exist" % original_path)
+            abort(400, "%s does not exist" % original_path)
         return command
 
     def perpare_copy_cut(self, command, func):
         destination_folder = command['to']
         if not os.path.isdir(destination_folder):
-            throw_error("%s must be a directory" % destination_folder)
+            abort(400, "%s must be a directory" % destination_folder)
 
         for copy_file in command['from']:
             filepath_from = get_path_from_group_url(copy_file)
@@ -369,7 +369,7 @@ class Command(ProtectedWriteResource):
     def unzip(self, command):
         path = command['to']
         if not path.endswith('.zip'):
-            throw_error("%s is not a valid zipfile" % request.url)
+            abort(400, "%s is not a valid zipfile" % request.url)
         unzip(path, os.path.dirname(path),
               command.get('delete_zip_after_unpack', False))
 
@@ -399,7 +399,7 @@ class Zones(ProtectedResource):
         args = parser.parse_args()
         print(args)
         if not args['zones']:
-            throw_error("No zones found")
+            abort(400, "No zones found")
 
         zones = []
         for zone in args["zones"]:
@@ -407,9 +407,9 @@ class Zones(ProtectedResource):
             name = zone.get('zone')
             path = zone.get('path')
             if not name or not path:
-                throw_error("A zone entry needs a zone and path key.")
+                abort(400, "A zone entry needs a zone and path key.")
             if db.session.query(Zone).filter_by(name=name).all():
-                throw_error("This zone already exists")
+                abort(400, "This zone already exists")
             if path.startswith("/"):
                 path = path[1:]
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
@@ -417,13 +417,13 @@ class Zones(ProtectedResource):
             try:
                 declare_zone_permissions(name)
             except Exception as e:
-                throw_error(str(e))
+                abort(400, str(e))
             os.makedirs(zone_path, exist_ok=True)
             zones.append(name)
             zone = Zone(name, path)
             db.session.add(zone)
             db.session.commit()
-        return throw_success("Successfully created zones: %s"
+        return success("Successfully created zones: %s"
                              % ", ".join(zones))
 
     @has_admin_write
@@ -446,11 +446,12 @@ class Zones(ProtectedResource):
         zones = []
         for z in args["zones"]:
             if not z.get('id'):
-                throw_error("must provide a zone id")
+                abort(400, "must provide a zone id")
             try:
                 zone = db.session.query(Zone).filter_by(id=z['id']).one()
-                if z.get('zone') and db.session.query(Zone).filter_by(name=z['zone']).all():
-                    throw_error("This zone already exists")
+                dbzone = db.session.query(Zone).filter_by(name=z['zone']).all()
+                if z.get('zone') and dbzone:
+                    abort(400, "This zone already exists")
                 old_name = zone.name
                 zone.name = z.get('zone', zone.name)
                 path = z.get('path', zone.path)
@@ -459,21 +460,21 @@ class Zones(ProtectedResource):
                 zone.path = path
             except NoResultFound:
                 msg = ("Zone id '%s' does not exist" % z['id'])
-                throw_error(msg)
+                abort(400, msg)
 
             if not old_name == zone.name:
                 try:
                     retract_zone_permissions(old_name)
                     declare_zone_permissions(zone.name)
                 except Exception as e:
-                    throw_error(str(e))
+                    abort(400, str(e))
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
                                      zone.path)
             os.makedirs(zone_path, exist_ok=True)
             db.session.add(zone)
             zones.append(zone.name)
             db.session.commit()
-        return throw_success("Successfully updated zones: %s"
+        return success("Successfully updated zones: %s"
                              % ", ".join(zones))
 
 
@@ -496,7 +497,7 @@ class Permissions(ProtectedResource):
                         zone_permissions[perm[2]].append(perm[1])
                 user['permissions'] = zone_permissions
         except Exception as e:
-            throw_error(str(e))
+            abort(400, str(e))
         return users
 
     @has_admin_write
@@ -523,26 +524,24 @@ class Permissions(ProtectedResource):
         args = parser.parse_args()
 
         if not args['permissions']:
-            throw_error("No permissions found")
+            abort(400, "No permissions found")
         client = get_sigil_client()
         app_name = current_app.config['SIGIL_APP_NAME']
 
         for perm in args['permissions']:
             print(perm)
             if not isinstance(perm, dict):
-                throw_error("A need item must be a dictionary")
+                abort(400, "A need item must be a dictionary")
             username = perm.get('username')
             needs = perm.get('needs')
             if not username and not needs:
                 msg = "A need item must have a 'username' and 'needs' key"
-                throw_error(msg)
+                abort(400, msg)
             try:
                 func = getattr(client, func_name)
                 print(needs)
                 print(func(context=app_name, needs=needs, username=username))
             except Exception as e:
                 print(e)
-                throw_error(str(e))
-        return throw_success("Success")
-
-
+                abort(400, str(e))
+        return success("Success")

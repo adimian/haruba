@@ -53,24 +53,12 @@ def get_sigil_client():
 
 
 # ---------------- ERROR SECTION ----------------
-def throw_success(message):
+def success(message):
     message = {'status': 200,
                'message': message}
     resp = jsonify(message)
     resp.status_code = 200
     return resp
-
-
-def throw_not_found():
-    abort(404, 'Not Found: %s' % request.url)
-
-
-def throw_error(error):
-    abort(400, error)
-
-
-def throw_unauthorised(error):
-    abort(401, error)
 
 
 # ---------------- FILE OPERATIONS ----------------
@@ -86,11 +74,11 @@ def assemble_directory_contents(group, path):
     group_root = get_group_root(group)
     full_path = os.path.join(group_root, path)
     if not os.path.exists(full_path):
-        return throw_not_found()
+        return abort(404, 'Not Found: %s' % request.url)
 
     if not os.path.isdir(full_path):
         error = "%s is not a folder" % request.url
-        return throw_error(error)
+        return abort(400, error)
 
     folders = []
     files = []
@@ -147,7 +135,7 @@ def construct_available_path(filepath_from, destination_folder):
                 fnn = "%s(%s)" % (filepath_to, i)
             filepath_to = fnn
         return filepath_to
-    throw_error("Path does not exist")
+    abort(400, "Path does not exist")
 
 
 # ---------------- ZIP SECTION ----------------
