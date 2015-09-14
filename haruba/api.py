@@ -28,20 +28,6 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 
-
-@app.route('/')
-@app.route('/<path:path>')
-def serve(path=""):
-    import os
-    from flask import send_from_directory
-    file = os.path.basename(path)
-    path = os.path.dirname(path)
-    if not file:
-        file = 'index.html'
-    path = os.path.abspath(os.path.join('ui', path))
-    print(path)
-    return send_from_directory(path, file)
-
 if app.config['SENTRY_DSN']:
     sentry = Sentry(app)
 else:

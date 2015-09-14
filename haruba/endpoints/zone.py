@@ -45,13 +45,11 @@ class Zones(ProtectedResource):
         parser = reqparse.RequestParser()
         parser.add_argument('zones', location='json', type=prep_json)
         args = parser.parse_args()
-        print(args)
         if not args['zones']:
             abort(400, "No zones found")
 
         zones = []
         for zone in args["zones"]:
-            print(zone)
             name = zone.get('zone')
             path = zone.get('path')
             if not name or not path:

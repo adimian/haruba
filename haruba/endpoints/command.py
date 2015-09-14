@@ -4,8 +4,31 @@ import shutil
 from flask import abort, request
 from flask_restful import reqparse
 from haruba.endpoints import ProtectedWriteResource
-from haruba.utils import (success, unzip, get_path_from_group_url,
-                          construct_available_path, prep_json)
+from haruba.utils import success, unzip, get_group_root, prep_json
+
+
+def get_path_from_group_url(url):
+    if url.startswith("/"):
+        url = url[1:]
+    split = url.split("/")
+    group = split[0]
+    path = split[1:]
+    return os.path.join(get_group_root(group), *path)
+
+
+def construct_available_path(filepath_from, destination_folder):
+    if os.path.exists(filepath_from):
+        filepath_to = os.path.join(destination_folder,
+                                   os.path.basename(filepath_from))
+        i = 1
+        if os.path.exists(filepath_to):
+            fnn = "%s(%s)" % (filepath_to, i)
+            while os.path.exists(fnn):
+                i += 1
+                fnn = "%s(%s)" % (filepath_to, i)
+            filepath_to = fnn
+        return filepath_to
+    abort(400, "Path does not exist")
 
 
 class Command(ProtectedWriteResource):

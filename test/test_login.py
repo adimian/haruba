@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 
 def login(*args, **kwargs):
-    print('logged in')
+    pass
 
 
 def user_details(*args, **kwargs):

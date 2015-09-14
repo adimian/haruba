@@ -1,9 +1,42 @@
 import os
+import zipfile
+import tempfile
 from flask_restful import reqparse, inputs
 from flask import abort, request, send_file
 from werkzeug.datastructures import FileStorage
-from haruba.utils import (success, unzip, make_zip, make_selective_zip)
+from haruba.utils import success, unzip
 from haruba.endpoints import ProtectedReadResource, ProtectedWriteResource
+
+
+def make_zip(path, root_folder):
+    folder_name = os.path.basename(path)
+    temp_folder = tempfile.mkdtemp()
+    zip_file = "%s.zip" % os.path.join(temp_folder,
+                                       os.path.basename(folder_name))
+    zipf = zipfile.ZipFile(zip_file, 'w')
+    zipdir(path, zipf, root_folder)
+    zipf.close()
+    return zip_file
+
+
+def make_selective_zip(zip_name, base_path, files):
+    temp_folder = tempfile.mkdtemp()
+    zip_file = "%s.zip" % os.path.join(temp_folder, zip_name)
+    zipf = zipfile.ZipFile(zip_file, 'w')
+    for filepath in files:
+        if os.path.isdir(filepath):
+            zipdir(filepath, zipf, base_path)
+        else:
+            zipf.write(filepath, os.path.relpath(filepath, base_path))
+    zipf.close()
+    return zip_file
+
+
+def zipdir(path, zipf, root_folder):
+    for root, _, files in os.walk(path):
+        for fh in files:
+            file_path = os.path.join(root, fh)
+            zipf.write(file_path, os.path.relpath(file_path, root_folder))
 
 
 class Upload(ProtectedWriteResource):
@@ -41,7 +74,6 @@ class Download(ProtectedReadResource):
         """
         downloads the file or folder at the given path
         """
-        print("in single download")
         filepath = os.path.join(group_root, path)
         if not os.path.exists(filepath):
             abort(404, 'Not Found: %s' % request.url)
@@ -58,7 +90,6 @@ class Download(ProtectedReadResource):
         creates a zip with the selected files and folders at the given path
         and puts it up for download
         """
-        print("in multi download")
         parser = reqparse.RequestParser()
         parser.add_argument('filenames', action='append', required=True)
         args = parser.parse_args()
@@ -74,7 +105,6 @@ class Download(ProtectedReadResource):
         base_path = os.path.join(group_root, path)
         files = []
         for filename in args['filenames']:
-            print(filename)
             filepath = os.path.join(base_path, filename)
             do_not_exist = []
             if not os.path.exists(filepath):

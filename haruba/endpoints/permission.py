@@ -57,7 +57,6 @@ class Permissions(ProtectedResource):
         app_name = current_app.config['SIGIL_APP_NAME']
 
         for perm in args['permissions']:
-            print(perm)
             if not isinstance(perm, dict):
                 abort(400, "A need item must be a dictionary")
             username = perm.get('username')
@@ -67,9 +66,7 @@ class Permissions(ProtectedResource):
                 abort(400, msg)
             try:
                 func = getattr(client, func_name)
-                print(needs)
-                print(func(context=app_name, needs=needs, username=username))
+                func(context=app_name, needs=needs, username=username)
             except Exception as e:
-                print(e)
                 abort(400, str(e))
         return success("Success")

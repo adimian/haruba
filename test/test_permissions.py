@@ -37,8 +37,6 @@ def test_get_permissions(admin_client):
     userlist = copy.deepcopy(USER_LIST)
     for user in userlist['users']:
         user['permissions'] = {'some_zone': ['read', 'write']}
-    print(data)
-    print(userlist)
     assert data == userlist
 
 
@@ -46,7 +44,6 @@ def test_get_permissions(admin_client):
 def test_get_permissions_error(admin_client):
     ac = admin_client
     r = ac.get("/permissions")
-    print(r.data)
     is_in_data(r, 'message', 'some error')
 
 

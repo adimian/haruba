@@ -68,7 +68,6 @@ def test_create_zones(admin_client):
     assert r.status_code == 200
     data = json.loads(r.data.decode('utf-8'))
     assert len(data) == 4
-    print(data)
     expected_data = [{'id': 1, 'name': 'test_zone', 'path': ''},
                      {'id': 2, 'name': 'folder1_zone', 'path': 'folder1'},
                      {'id': 3, 'name': 'folder2_zone', 'path': 'folder2'},

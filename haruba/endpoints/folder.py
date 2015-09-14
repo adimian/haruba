@@ -1,10 +1,54 @@
 import os
+import shutil
+from scandir import scandir
+from datetime import datetime
 from . import ProtectedResource
 from flask import abort, request
 from flask_restful import reqparse
 from haruba.permissions import has_read, has_write
-from haruba.utils import (assemble_directory_contents, get_group_root, success,
-                          delete_file_or_folder)
+from haruba.utils import get_group_root, success
+
+
+def assemble_directory_contents(group, path):
+    group_root = get_group_root(group)
+    full_path = os.path.join(group_root, path)
+    if not os.path.exists(full_path):
+        return abort(404, 'Not Found: %s' % request.url)
+
+    if not os.path.isdir(full_path):
+        error = "%s is not a folder" % request.url
+        return abort(400, error)
+
+    folders = []
+    files = []
+    for item in scandir(full_path):
+        mod_date = datetime.fromtimestamp(item.stat().st_mtime)
+        file_dict = {'name': item.name,
+                     'is_file': item.is_file(),
+                     'is_dir': item.is_dir(),
+                     'size': item.stat().st_size,
+                     'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
+        if item.is_dir():
+            file_dict['extension'] = "folder"
+            folders.append(file_dict)
+        else:
+            file_dict['extension'] = item.name.split(".")[-1]
+            files.append(file_dict)
+    return folders + files
+
+
+def delete_file_or_folder(file_or_folder):
+    try:
+        if os.path.exists(file_or_folder):
+            if os.path.isfile(file_or_folder):
+                os.remove(file_or_folder)
+            else:
+                shutil.rmtree(file_or_folder)
+        else:
+            return False
+    except Exception:
+        return False
+    return True
 
 
 class Folder(ProtectedResource):
@@ -49,7 +93,6 @@ class Folder(ProtectedResource):
             abort(400, "%s does not exist" % path)
 
         new_path = os.path.join(os.path.dirname(file_path), new_name)
-        print(new_path)
         if os.path.exists(new_path):
             abort(400, ("%s already exists at %s"
                         % (new_name, os.path.dirname(path))))
@@ -64,8 +107,7 @@ class Folder(ProtectedResource):
         else:
             try:
                 os.rename(old_path, new_path)
-            except Exception as e:
-                print(e)
+            except Exception:
                 abort(400, "Could not rename %s" % request.url)
 
     @has_write
