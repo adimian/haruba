@@ -2,7 +2,7 @@ from flask_script import Manager, Server, prompt_pass, prompt
 from sigil_client import SigilClient, SigilApplication
 
 from haruba.database import db
-from haruba.harubad import app, setup_endpoints
+from haruba.api import app, setup_endpoints
 import logging
 logger = logging.getLogger('haruba.server')
 
@@ -33,6 +33,8 @@ def register_app(url, app_name, credentials):
 
 def update_needs(url, app_key):
     application = SigilApplication(url, app_key)
+    # these need declarations are of no use. needs per zone are created
+    # on each zone create, haruba is not using these the following needs
     needs = (('zone', 'write'),
              ('zone', 'read'))
     updated_needs = application.declare(needs)

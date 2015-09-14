@@ -16,32 +16,6 @@ FILE_TYPE = 'file'
 FOLDER_TYPE = 'folder'
 
 
-class User(object):
-
-    def __init__(self, login, provides):
-        self.login = login
-        self.roles = []
-        self.zones = defaultdict(list)
-        for group in provides:
-            self.roles.append(group)
-
-    def is_active(self):
-        return True
-
-    def is_authenticated(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return self.login
-
-    def add_zone(self, permissions):
-        _, permission, zone = permissions
-        self.zones[zone].append(permission)
-
-
 def prep_json(*args, **kwargs):
     return args[0]
 

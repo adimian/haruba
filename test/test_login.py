@@ -51,7 +51,7 @@ def test_empty_login(client):
     assert rv.status_code == 400
 
 
-@patch("haruba.api.request_authentication", wrong_auth)
+@patch("haruba.endpoints.login.request_authentication", wrong_auth)
 def test_wrong_login(client):
     rv = client.post('/login', data={'login': 'nonexistant',
                                      'password': 'Secret'})

@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from haruba.database import db, Zone
-from haruba.harubad import app, setup_endpoints
+from haruba.api import app, setup_endpoints
 
 setup_endpoints()
 
