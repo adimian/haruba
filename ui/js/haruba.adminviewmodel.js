@@ -16,12 +16,16 @@ function AdminViewModel(){
 	self.revoke_rights = ko.observableArray();
 	self.grant_rights = ko.observableArray();
 	self.has_changed = ko.observable(false);
+	self.creating_zone = ko.observable(false);
 	self.pending_permissions = ko.observableArray();
 	
 	//behaviour
 	self.logout = function(){hclient.logout()};
 	self.load_home = function(){$.get("/app.html", function(data){ $("body").html(data);})};
 	self.load_zone = load_zone;
+	self.init_create_zone = init_create_zone;
+	self.create_zone = create_zone;
+	self.update_zone = update_zone;
 	self.register_pemission_change = register_pemission_change;
 	self.select_users = select_users
 	self.select_zones = select_zones
@@ -39,9 +43,41 @@ function AdminViewModel(){
 }
 
 var load_zone = function(item, evt){
+	avm.creating_zone(false);
 	avm.selected_zone(item);
 	avm.selected_zone_name(item.name);
-	hclient.permissions.get_users(function(data){avm.users(data.users); avm.query.valueHasMutated()})
+	hclient.permissions.get_users(function(data){avm.users(data.users); avm.query.valueHasMutated(); init_resize();})
+}
+
+var init_create_zone = function(item, evt){
+	avm.creating_zone(true);
+	avm.selected_zone({"name": "new zone", "path": "/new_zone", "id": null});
+	
+	init_resize();
+	$('input[type="text"]').each(function(){ $(this).css({"border": "1px solid lightgrey",
+														  "width": "60%"})});
+}
+
+var init_resize = function(){	
+	function resizeInput() {
+		$(this).attr('size', $(this).val().length + 1);
+	}
+	$('input[type="text"]').each(resizeInput);
+	$('input[type="text"]').blur(resizeInput);
+}
+
+var create_zone = function(item, evt){
+	zone = avm.selected_zone()
+	hclient.zone.create([{"zone": zone.name, "path": zone.path}], function(){
+		load_zone(zone)
+	});
+}
+
+var update_zone = function(item, evt){
+	zone = avm.selected_zone()
+	hclient.zone.update([{"zone": zone.name, "path": zone.path, "id": zone.id}], function(){
+		hclient.zone.zones(function(data){avm.zones(data); load_zone(zone);});
+	});
 }
 
 var search_main = function(search_str){
@@ -56,6 +92,7 @@ var search_main = function(search_str){
 											  has_permission(user, avm.selected_zone_name(), "read"),
 										      has_permission(user, avm.selected_zone_name(), "write"));
 		avm.user_candidates.push(user)
+		console.log(avm.user_candidates())
 	})
 
 }
@@ -115,11 +152,8 @@ PermissionTracker.prototype.has_changed = function(){
 PermissionTracker.prototype.get_changed = function(){
 	changed = {"revoke": [],
 			   "grant": []}
-	console.log("-----***")
 	var zones = $.extend(true, [], this.apply_to_zones)
-	console.log(zones)
 	zones.push({"name": avm.selected_zone_name()})
-	console.log(zones)
 	for(i=0;zones.length>i;i++){
 		var zone_name = zones[i].name
 		var read_need = ["zone", "read", zone_name]
@@ -139,9 +173,7 @@ PermissionTracker.prototype.get_changed = function(){
 	var revoke = []
 	var grant = []
 	var users = $.extend(true, [], this.apply_to_users)
-	console.log(users)
 	users.push({"username": this.username})
-	console.log(users)
 	for(i=0;users.length>i;i++){
 		username = users[i].username
 		revoke.push({"username": username,
@@ -149,8 +181,6 @@ PermissionTracker.prototype.get_changed = function(){
 	    grant.push({"username": username,
 			         "needs": $.extend(true, [], changed['grant'])})
 	}
-	console.log(revoke)
-	console.log(grant)
 	return [revoke, grant];
 }
 
@@ -189,10 +219,7 @@ var load_dialog = function(url, title, selected_list, item, ptracker_attr){
 			for(i=0;selected.length>i;i++){
 				apply_to.push($.extend(true, {}, selected[i]))
 			}
-			console.log(selected)
-			console.log(apply_to)
 			item.ptracker[ptracker_attr] = apply_to;
-			console.log(item.ptracker[ptracker_attr])
 			avm.user_candidates.valueHasMutated();
 			avm.has_changed($(".folder").length>0);
 		});

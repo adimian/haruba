@@ -96,7 +96,7 @@ class Zones(ProtectedResource):
             try:
                 zone = db.session.query(Zone).filter_by(id=z['id']).one()
                 dbzone = db.session.query(Zone).filter_by(name=z['zone']).all()
-                if z.get('zone') and dbzone:
+                if z.get('zone') and dbzone and dbzone[0] != zone:
                     abort(400, "This zone already exists")
                 old_name = zone.name
                 zone.name = z.get('zone', zone.name)

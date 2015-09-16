@@ -381,6 +381,24 @@ body{
 .admin-value{
 	float: left;
 	font-size: 16px;
+	border: 0px;
+	max-width: 60%;
+}
+
+.admin-value:focus{
+	float: left;
+	font-size: 16px;
+	border: 1px;
+	width: 60%;
+}
+
+.zone-help{
+  	display: none;
+  	color: lightgrey;
+}
+
+.admin-row:hover .zone-help{
+  	display: block;
 }
 
 .color_red{

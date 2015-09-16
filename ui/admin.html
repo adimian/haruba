@@ -9,7 +9,9 @@
     </div>
   </div>
   <div class="menu" data-bind="with: zones">
-    <div class="menu-item menu-item-selected" style="border-bottom: 1px solid #385F88;"><span class="glyphicon glyphicon-plus"></span> Create Zone</div>
+    <div class="menu-item menu-item-selected" style="border-bottom: 1px solid #385F88;" data-bind="click: $root.init_create_zone">
+      <span class="glyphicon glyphicon-plus"></span> Create Zone
+    </div>
     <div data-bind="foreach: $data">
       <div class="menu-item" data-bind="text: name,
     									css: { 'menu-item-selected': name == $root.selected_zone_name() },
@@ -22,24 +24,37 @@
       <div class="admin_content">
         <div class="admin-item">
           <div class="admin-label">Zone:</div>
-          <div class="admin-value" data-bind="text: name,
-          									  attr: {'data-id': id}"></div>
+          <div class="admin-row">
+            <input type="text" class="admin-value" id="zone-value" data-bind="value: name,
+          									  			      				  attr: {'data-id': id},
+          									  			      				  event: { blur: $root.update_zone}"></input>
+            <span class="zone-help">click to edit</span>
+          </div>
         </div>
         <div class="admin-item">
           <div class="admin-label">Path:</div>
-          <div class="admin-value" data-bind="text: path,
-          									  attr: {'data-id': id}"></div>
+          <div class="admin-row">
+            <input type="text" class="admin-value"  id="path-value" data-bind="value: path,
+          									  			      				   attr: {'data-id': id},
+          									  			      				   event: { blur: $root.update_zone}"></input>
+            <span class="zone-help">click to edit</span>
+          </div>
+        </div>
+        <div class="admin-item">
+		  <input class="btn btn-success" type="button" value="Create" data-bind="visible: $root.creating_zone,
+		  																		 click: $root.create_zone">
         </div>
       </div>
     </div>
-    <div class="admin_section" data-bind="visible: !!selected_zone()">
+    
+    <div class="admin_section" data-bind="visible: (!!selected_zone() && !creating_zone())">
       <div class="admin_title">Permissions</div>
       <div class="admin-table">
         <div class="list-row header-row">
 	   	  <div class="header-item width-50">
 	   	    <div class="input-group admin-search-bar">
 		      <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
-			  <input id="searchbar" type="text" class="form-control" placeholder="Search user..." data-bind="value: $root.query, valueUpdate: 'keyup'">
+			  <input id="searchbar" type="text" class="form-control" placeholder="Search user..." data-bind="value: $root.query, valueUpdate: 'keyup'"></input>
 			</div>
 	   	  </div>
 	   	  <div class="header-item width-5">Read</div>
@@ -52,7 +67,7 @@
 	   	<div id="folder-content" data-bind="with: user_candidates">
 	   	  <div data-bind="foreach: $data">
 		    <div class="list-row" style="cursor: auto;" data-bind="css: {folder: ptracker.has_changed()}">
-		   	  <div class="row-item width-50" data-bind="text: display_name + ' (' + username + ')'"></div>
+		   	  <div class="row-item width-50" data-bind="text: displayname + ' (' + username + ')'"></div>
 		      <div class="row-item width-5"><span data-bind="attr: {'class': $root.has_read_rights_css($data)},
 		                                                     click: $root.register_pemission_change" data-perm="read"></span></div>
 		      <div class="row-item width-5"><span data-bind="attr: {'class': $root.has_write_rights_css($data)},

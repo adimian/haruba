@@ -2,6 +2,10 @@ var LOGGED_IN = false;
 
 var show_error = function(xhr, ajaxOptions, thrownError){
 	error_message = JSON.parse(xhr.responseText)['message']
+	if(xhr.status == "401" && error_message == "token has expired"){
+		hclient.am_i_logged_in(function(){})
+	}
+	console.log(xhr.status)
 	HDialog("An error occured", error_message, function(){})
 };
 
@@ -125,9 +129,10 @@ HZone.prototype.zones = function(success_func){
 		success_func(data);
 	});
 };
-HZone.prototype.create = function(zones){
+HZone.prototype.create = function(zones, success_func){
 	data = JSON.stringify({'zones': zones})
 	post(this.get_url("/zone"), data, function(data, text, xrh){
+		success_func()
 		console.log(data);
 	}, true);
 };
@@ -142,17 +147,14 @@ HZone.prototype.update = function(zones){
 // -----------------------CLIENT-----------------------
 function HClient(){}
 HClient.prototype = new HRequest()
-HClient.prototype.am_i_logged_in = function(){
+HClient.prototype.am_i_logged_in = function(success_func){
 	get(this.get_url("/login"), function(data, text, xrh){
 		if(data == false){
 			$.get("/login.html", function(data){
 				$("body").html(data);
 			});
 		}else{
-			$.get("/app.html", function(data){
-				$("body").html(data);
-				init_dragdrop();
-			});
+			success_func()
 		}
 		LOGGED_IN = data;
 	});
@@ -222,7 +224,12 @@ HClient.prototype.download = new HDownload()
 HClient.prototype.zone = new HZone()
 	
 var hclient = new HClient()
-hclient.am_i_logged_in()
+hclient.am_i_logged_in(function(){
+	$.get("/app.html", function(data){
+		$("body").html(data);
+		init_dragdrop();
+	});
+})
 		
 		
 		
