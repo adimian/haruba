@@ -74,10 +74,12 @@ var create_zone = function(item, evt){
 }
 
 var update_zone = function(item, evt){
-	zone = avm.selected_zone()
-	hclient.zone.update([{"zone": zone.name, "path": zone.path, "id": zone.id}], function(){
-		hclient.zone.zones(function(data){avm.zones(data); load_zone(zone);});
-	});
+	if(!avm.creating_zone()){		
+		zone = avm.selected_zone()
+		hclient.zone.update([{"zone": zone.name, "path": zone.path, "id": zone.id}], function(){
+			hclient.zone.zones(function(data){avm.zones(data); load_zone(zone);});
+		});
+	}
 }
 
 var search_main = function(search_str){

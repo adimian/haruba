@@ -11,21 +11,18 @@ class Permissions(ProtectedResource):
     def get(self):
         client = get_sigil_client()
         app_name = current_app.config['SIGIL_APP_NAME']
-        try:
-            users = client.list_users(context=app_name)
-            # TODO: needs to be replaced by the newly implemented search
-            # function in sigil
-            for user in users['users']:
-                permissions = client.provides(context=app_name,
-                                              username=user['username'])
-                zone_permissions = defaultdict(list)
-                for permission in permissions['provides']:
-                    perm = list(permission)
-                    if perm[0] == ZONE_CONTEXT:
-                        zone_permissions[perm[2]].append(perm[1])
-                user['permissions'] = zone_permissions
-        except Exception as e:
-            abort(400, str(e))
+        users = client.list_users(context=app_name)
+        # TODO: needs to be replaced by the newly implemented search
+        # function in sigil
+        for user in users['users']:
+            permissions = client.provides(context=app_name,
+                                          username=user['username'])
+            zone_permissions = defaultdict(list)
+            for permission in permissions['provides']:
+                perm = list(permission)
+                if perm[0] == ZONE_CONTEXT:
+                    zone_permissions[perm[2]].append(perm[1])
+            user['permissions'] = zone_permissions
         return users
 
     @has_admin_write
@@ -64,9 +61,6 @@ class Permissions(ProtectedResource):
             if not username and not needs:
                 msg = "A need item must have a 'username' and 'needs' key"
                 abort(400, msg)
-            try:
-                func = getattr(client, func_name)
-                func(context=app_name, needs=needs, username=username)
-            except Exception as e:
-                abort(400, str(e))
+            func = getattr(client, func_name)
+            func(context=app_name, needs=needs, username=username)
         return success("Success")

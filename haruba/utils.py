@@ -29,7 +29,7 @@ class WrappedSigilClient(object):
         try:
             return self.wrap(getattr(self.client, name))
         except Exception as e:
-            abort(400, {'message': str(e)})
+            abort(400, str(e))
 
     def wrap(self, func):
         def outer(*args, **kwargs):
@@ -38,11 +38,11 @@ class WrappedSigilClient(object):
             except Exception as e:
                 if "token has expired" in str(e):
                     logout_user()
-                    abort(401, {'message': str(e)})
+                    abort(401, str(e))
                 else:
                     print(e)
                     print(func)
-                    abort(400, {'message': str(e)})
+                    abort(400, str(e))
         return outer
 
 

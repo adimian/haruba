@@ -46,7 +46,7 @@ def test_wrong_input(admin_client):
     content = json.dumps(command)
     r = ac.post("/zone", data=content,
                 content_type='application/json')
-    r.status_code = 200
+    assert r.status_code == 400
     is_in_data(r, 'message', 'A zone entry needs a zone and path key.')
 
 
@@ -86,7 +86,7 @@ def test_create_existing_zones(admin_client):
     content = json.dumps(command)
     r = ac.post("/zone", data=content,
                 content_type='application/json')
-    r.status_code = 400
+    assert r.status_code == 400
     is_in_data(r, 'message', 'This zone already exists')
 
 
@@ -100,8 +100,10 @@ def test_update_zones(admin_client):
     content = json.dumps(command)
     r = ac.put("/zone", data=content,
                content_type='application/json')
-    r.status_code = 200
+    assert r.status_code == 200
     is_in_data(r, 'message', 'Successfully updated zones')
+    assert not os.path.exists(os.path.join(ROOT_DIR, "srv", "folder1"))
+    assert os.path.exists(os.path.join(ROOT_DIR, "srv", "folder5"))
 
 
 @patch('sigil_client.SigilApplication.declare', declare)
@@ -114,7 +116,7 @@ def test_update_existing_zones(admin_client):
     content = json.dumps(command)
     r = ac.put("/zone", data=content,
                content_type='application/json')
-    r.status_code = 400
+    assert r.status_code == 400
     is_in_data(r, 'message', 'This zone already exists')
 
 
@@ -127,7 +129,7 @@ def test_update_zones_no_id(admin_client):
     content = json.dumps(command)
     r = ac.put("/zone", data=content,
                content_type='application/json')
-    r.status_code = 200
+    assert r.status_code == 400
     is_in_data(r, 'message', 'must provide a zone id')
 
 
@@ -141,7 +143,7 @@ def test_update_zones_wrong_id(admin_client):
     content = json.dumps(command)
     r = ac.put("/zone", data=content,
                content_type='application/json')
-    r.status_code = 200
+    assert r.status_code == 400
     is_in_data(r, 'message', "Zone id '999' does not exist")
 
 
@@ -149,6 +151,6 @@ def test_update_zones_wrong_id(admin_client):
 def test_my_zones(authenticated_client):
     ac = authenticated_client
     r = ac.get("/myzones")
-    r.status_code = 200
+    assert r.status_code == 200
     data = json.loads(r.data.decode('utf-8'))
     assert data == [{'access': ['read', 'write'], 'zone': 'test_zone'}]

@@ -6,9 +6,10 @@ from haruba.database import db, Zone
 from flask import current_app, session
 from flask_restful import reqparse, inputs
 from sqlalchemy.orm.exc import NoResultFound
-from haruba.utils import success, prep_json, get_sigil_client
+from haruba.utils import success, prep_json, get_sigil_client, get_group_root
 from haruba.permissions import (declare_zone_permissions, has_admin_write,
                                 retract_zone_permissions, has_admin_read)
+import shutil
 
 
 class MyZones(ProtectedResource):
@@ -60,15 +61,15 @@ class Zones(ProtectedResource):
                 path = path[1:]
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
                                      path)
-            try:
-                declare_zone_permissions(name)
-            except Exception as e:
-                abort(400, str(e))
             os.makedirs(zone_path, exist_ok=True)
             zones.append(name)
             zone = Zone(name, path)
             db.session.add(zone)
             db.session.commit()
+            try:
+                declare_zone_permissions(name)
+            except Exception as e:
+                abort(400, str(e))
         return success("Successfully created zones: %s"
                        % ", ".join(zones))
 
@@ -98,7 +99,9 @@ class Zones(ProtectedResource):
                 dbzone = db.session.query(Zone).filter_by(name=z['zone']).all()
                 if z.get('zone') and dbzone and dbzone[0] != zone:
                     abort(400, "This zone already exists")
-                old_name = zone.name
+                oldname = zone.name
+                oldpath = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
+                                       zone.path)
                 zone.name = z.get('zone', zone.name)
                 path = z.get('path', zone.path)
                 if path.startswith("/"):
@@ -108,15 +111,19 @@ class Zones(ProtectedResource):
                 msg = ("Zone id '%s' does not exist" % z['id'])
                 abort(400, msg)
 
-            if not old_name == zone.name:
+            if not oldname == zone.name:
                 try:
-                    retract_zone_permissions(old_name)
+                    retract_zone_permissions(oldname)
                     declare_zone_permissions(zone.name)
                 except Exception as e:
                     abort(400, str(e))
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
                                      zone.path)
-            os.makedirs(zone_path, exist_ok=True)
+            if oldpath != zone_path:
+                if os.path.exists(zone_path):
+                    abort(400, "This path already exists")
+                os.makedirs(zone_path)
+                shutil.move(oldpath, zone_path)
             db.session.add(zone)
             zones.append(zone.name)
             db.session.commit()

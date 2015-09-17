@@ -45,7 +45,7 @@ def test_get_permissions_error(admin_client):
     ac = admin_client
     r = ac.get("/permissions")
     print(r.data)
-    is_in_data(r, 'message', '400: Bad Request')
+    is_in_data(r, 'message', 'some error')
 
 
 def permissions_return_value(*args, **kwargs):
@@ -83,7 +83,7 @@ def test_grant_permissions_error(admin_client):
     r = ac.post("/permissions", data=content,
                 content_type='application/json')
     assert r.status_code == 400
-    is_in_data(r, 'message', "400: Bad Request")
+    is_in_data(r, 'message', "it's not done, son")
 
 
 @patch("sigil_client.SigilClient.withdraw", permissions_return_value)
