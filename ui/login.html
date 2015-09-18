@@ -1,4 +1,5 @@
- <div class="row" style="padding-top:1em; margin-top: 150px;">
+<div class='fader' id="login-fader">
+ <div id="login-panel" class="row" style="padding-top:1em; margin-top: 150px; position: absolute; width: 100%;">
    <div class="col-md-6 col-sm-6 col-sm-offset-3">
      <div class="panel panel-default">
        <div class="panel-heading">Please login</div>
@@ -19,7 +20,7 @@
            </div>
            <div class="form-group">
              <div class="col-sm-offset-2 col-sm-10">
-               <button class="btn btn-success" type="submit" onclick="hclient.login($('#login').val(), $('#password').val())">Ok</button>
+               <button id="login-button" class="btn btn-success" type="submit" onclick="hclient.login($('#login').val(), $('#password').val())">Ok</button>
              </div>
            </div>
          </div>
@@ -27,3 +28,4 @@
      </div>
    </div>
  </div>
+</div>

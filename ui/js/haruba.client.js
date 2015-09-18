@@ -1,12 +1,10 @@
-var LOGGED_IN = false;
-
 var show_error = function(xhr, ajaxOptions, thrownError){
 	error_message = JSON.parse(xhr.responseText)['message']
 	if(xhr.status == "401" && error_message == "token has expired"){
 		hclient.am_i_logged_in(function(){})
+	}else{		
+		HDialog("An error occured", error_message, function(){})
 	}
-	console.log(xhr.status)
-	HDialog("An error occured", error_message, function(){})
 };
 
 var request = function(type, url, form_data, success_func, has_json){
@@ -151,12 +149,16 @@ HClient.prototype.am_i_logged_in = function(success_func){
 	get(this.get_url("/login"), function(data, text, xrh){
 		if(data == false){
 			$.get("/login.html", function(data){
-				$("body").html(data);
+				$("body").append(data);
+				$("#password").keypress(function(e) {
+				    if(e.which == 13) {
+				        $('#login-button').trigger('click')
+				    }
+				});
 			});
 		}else{
 			success_func()
 		}
-		LOGGED_IN = data;
 	});
 }
 HClient.prototype.login = function(username, password){
@@ -164,16 +166,18 @@ HClient.prototype.login = function(username, password){
 			"password": password};
 	
 	post(this.get_url("/login"), data, function(data, text, xrh){
-		LOGGED_IN = true;
-		console.log("logged in")
-		$.get("/app.html", function(data){
-			$("body").html(data);
-		});
+		if(!initialised){	
+			$.get("/app.html", function(data){
+				initialised = true;
+				$("body").html(data);
+			});
+		}else{
+			$("#login-fader").remove();
+		}
 	});
 }
 HClient.prototype.logout = function(){
 	get(this.get_url("/logout"), function(data, text, xrh){
-		LOGGED_IN = false;
 		$.get("/login.html", function(data){
 			$("body").html(data);
 		});
@@ -222,10 +226,12 @@ HClient.prototype.permissions = new HPermissions()
 HClient.prototype.folder = new HFolder()
 HClient.prototype.download = new HDownload()
 HClient.prototype.zone = new HZone()
-	
+
+var initialised = false;
 var hclient = new HClient()
 hclient.am_i_logged_in(function(){
 	$.get("/app.html", function(data){
+		initialised = true;
 		$("body").html(data);
 		init_dragdrop();
 	});
