@@ -26,9 +26,11 @@
           <div class="admin-label">Zone:</div>
           <div class="admin-row">
             <input type="text" class="admin-value" id="zone-value" data-bind="value: name,
-          									  			      				  attr: {'data-id': id},
-          									  			      				  event: { blur: $root.update_zone}"></input>
-            <span class="zone-help">click to edit</span>
+            																  visible: $root.creating_zone(),	
+          									  			      				  attr: {'data-id': id}"></input>
+          	<div class="admin-value" id="zone-value" data-bind="text: name,
+          														visible: !$root.creating_zone(),
+          									  			      	attr: {'data-id': id}"></div>
           </div>
         </div>
         <div class="admin-item">

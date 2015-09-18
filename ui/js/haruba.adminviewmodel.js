@@ -50,6 +50,8 @@ var load_zone = function(item, evt){
 }
 
 var init_create_zone = function(item, evt){
+	avm.selected_zone("");
+	avm.selected_zone_name("");
 	avm.creating_zone(true);
 	avm.selected_zone({"name": "new zone", "path": "/new_zone", "id": null});
 	
@@ -67,18 +69,18 @@ var init_resize = function(){
 }
 
 var create_zone = function(item, evt){
-	zone = avm.selected_zone()
-	hclient.zone.create([{"zone": zone.name, "path": zone.path}], function(){
-		load_zone(zone)
-	});
+	HDialog("Create Zone", "You will not be able to edit the zone name once created, are you sure you want to continue?", function(){
+		zone = avm.selected_zone()
+		hclient.zone.create([{"zone": zone.name, "path": zone.path}], function(){
+			hclient.zone.zones(function(data){avm.zones(data); load_zone(zone);});
+		});
+	}, true);
 }
 
 var update_zone = function(item, evt){
 	if(!avm.creating_zone()){		
 		zone = avm.selected_zone()
-		hclient.zone.update([{"zone": zone.name, "path": zone.path, "id": zone.id}], function(){
-			hclient.zone.zones(function(data){avm.zones(data); load_zone(zone);});
-		});
+		hclient.zone.update([{"zone": zone.name, "path": zone.path, "id": zone.id}], function(){});
 	}
 }
 
