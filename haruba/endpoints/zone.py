@@ -86,44 +86,60 @@ class Zones(ProtectedResource):
         """
         parser = reqparse.RequestParser()
         parser.add_argument('zones', location='json', type=prep_json)
-        parser.add_argument('create_if_not_exists', type=inputs.boolean,
+        parser.add_argument('copy_contents', type=inputs.boolean,
+                            default=False)
+        parser.add_argument('adopt_if_exists', type=inputs.boolean,
                             default=False)
         args = parser.parse_args()
 
         zones = []
         for z in args["zones"]:
-            if not z.get('id'):
-                abort(400, "must provide a zone id")
+            keys = ['id', 'name']
+            if z.get('zone'):
+                z['name'] = z['zone']
+            query_filter = {key: z[key] for key in keys if z.get(key)}
+            if not query_filter:
+                abort(400, "must provide a zone 'id' or a name 'zone' key")
+            if not z.get('path'):
+                abort(400, "must provide a zone 'path' to update")
+
             try:
-                zone = db.session.query(Zone).filter_by(id=z['id']).one()
-                dbzone = db.session.query(Zone).filter_by(name=z['zone']).all()
-                if z.get('zone') and dbzone and dbzone[0] != zone:
-                    abort(400, "This zone already exists")
-                oldname = zone.name
-                oldpath = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
-                                       zone.path)
-                zone.name = z.get('zone', zone.name)
-                path = z.get('path', zone.path)
-                if path.startswith("/"):
-                    path = path[1:]
-                zone.path = path
+                zone = db.session.query(Zone).filter_by(**query_filter).one()
             except NoResultFound:
-                msg = ("Zone id '%s' does not exist" % z['id'])
+                msg = ("Zone with %s does not exist" % query_filter)
                 abort(400, msg)
 
-            if not oldname == zone.name:
-                try:
-                    retract_zone_permissions(oldname)
-                    declare_zone_permissions(zone.name)
-                except Exception as e:
-                    abort(400, str(e))
-            zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
-                                     zone.path)
-            if oldpath != zone_path:
-                if os.path.exists(zone_path):
-                    abort(400, "This path already exists")
-                os.makedirs(zone_path)
-                shutil.move(oldpath, zone_path)
+            oldpath = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
+                                   zone.path)
+            path = z.get('path')
+            if path.startswith("/"):
+                path = path[1:]
+
+            dependant = db.session.query(Zone).filter(Zone.path == zone.path,
+                                                      Zone.id != zone.id).all()
+            zone.path = path
+
+            new_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
+                                    path)
+            if oldpath != new_path:
+                if os.path.exists(new_path):
+                    if not args['adopt_if_exists']:
+                        abort(400, "This path already exists")
+                elif args.copy_contents:
+                    try:
+                        # if another zone depends on this path, copy folder
+                        if dependant:
+                            shutil.copytree(oldpath, new_path)
+                        # if no zones depend on this path, move folder
+                        else:
+                            os.makedirs(new_path)
+                            shutil.move(oldpath, new_path)
+                    except shutil.Error:
+                        abort(400, "An error occured moving folder, "
+                                   "make sure you are not moving parent "
+                                   "folder into child folder")
+                else:
+                    os.makedirs(new_path)
             db.session.add(zone)
             zones.append(zone.name)
             db.session.commit()
