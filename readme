@@ -2,6 +2,29 @@
 * User section *
 ****************
 
+Introduction
+============
+
+Haruba is an api that allows you to interact with a filesystem on a remote server
+It defines zones that each act as an independant filesystem.
+
+For these zones you can define permissions. Permissions are driven by the sigil api.
+
+In this readme we will also provide python examples of how to make calls.
+For each example we will assume the following is defined
+
+Code
+----
+
+import requests
+session = requests.Session()
+proxies = {
+  "http": "http://10.10.1.10:3128",
+  "https": "http://10.10.1.10:1080",
+}
+session.proxies = proxies
+base_url = "http://haruba.com"
+
 Login
 =====
 
@@ -21,6 +44,10 @@ GET: will tell you if you are loggin in or not
 - params: None
 - returns: True/False
 
+example:
+url = "%s/login" % base_url
+session.request('get', base_url)
+
 POST: making a post request will allow you to log in with either your login/password combination or your api key.
 - params:
   * login: the user login
@@ -29,6 +56,12 @@ POST: making a post request will allow you to log in with either your login/pass
 - return type: JSON
 - returns: {"message": <string>}
 - error returns: {"message": <string>}
+
+example:
+url = "%s/login" % base_url
+session.request('post', base_url, data={'login': 'myuser',
+										'password': 'mypassword'})
+
 
 
 My zones
@@ -51,6 +84,10 @@ GET: returns a list of allowed zones and the access right you have
 - return type: JSON
 - returns: [{"zone": <zone>, "access": [<string:read>, <string:write>]}, {...}]
 - error returns: {"message": "<string>"}
+
+example:
+url = "%s/myzones" % base_url
+session.request('get', url)
 
 
 Folder
@@ -80,12 +117,20 @@ GET: will assemble a list of current directories and files at the current locati
             {...}]
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/files/myfolder1" % base_url
+session.request('get', url)
+
 POST: will create a folder at a given path.
 - data params: None
 - JSON params: None
 - return type: JSON
 - returns: {"message": <string>}
 - error returns: {"message": <string>}
+
+example:
+url = "%s/files/myfolder1/my_new_folder" % base_url
+session.request('post', url)
 
 PUT: will rename a folder or file at a given path
 - data params: 
@@ -94,6 +139,11 @@ PUT: will rename a folder or file at a given path
 - return type: JSON
 - returns: {"message": <string>}
 - error returns: {"message": <string>}
+
+example:
+url = "%s/files/myfolder1/my_old_folder" % base_url
+payload = {'rename_to': 'my_new_named_folder'}
+session.request('put', url, data=payload)
 
 DELETE: deletes if the given path is a file
         if the given path is a folder, it will check for request data
@@ -106,6 +156,21 @@ DELETE: deletes if the given path is a file
 - return type: JSON
 - returns: {"message": <string>}
 - error returns: {"message": <string>}
+
+example:
+# delete the whole folder
+url = "%s/files/myfolder1/my_to_delete_folder" % base_url
+session.request('delete', url)
+
+# delete a specific file
+url = "%s/files/myfolder1/my_to_delete_file" % base_url
+session.request('delete', url)
+
+# delete the specific files in the folder
+url = "%s/files/myfolder1/my_to_delete_folder" % base_url
+payload = {'file_to_delete': ['some_file', 'another_file']}
+session.request('delete', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
 
 
 Upload
@@ -130,6 +195,14 @@ POST: uploads the given files to the given path, the path must be a folder
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/upload/myfolder1" % base_url
+payload = {'files': [open('/path/to/file.txt', 'rb'),
+					 open('/path/to/file.zip', 'rb')],
+		   'unpack_zip': True,
+		   'delete_zip_after_unpack': True}
+session.request('post', url, data=payload)
+
 
 Download
 ========
@@ -150,6 +223,10 @@ GET: downloads the file or folder (zip) at the given path
 - returns: <file>
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/upload/myfolder1/myfile" % base_url
+session.request('get', url)
+
 POST: downloads specific files from the given path as a zip
 - data params: 
   * filenames: [<file>, <file>] # list of files to download
@@ -157,6 +234,11 @@ POST: downloads specific files from the given path as a zip
 - return type: File
 - returns: <file>
 - error returns: {"message": "<string>"}
+
+example:
+url = "%s/download/myfolder1" % base_url
+payload = {'filenames': ['file1.txt', 'file2.jpg']}
+session.request('post', url, data=payload)
 
 Commands
 ========
@@ -193,6 +275,15 @@ POST:
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/command/myfolder1" % base_url
+payload = {'commands': {'type': 'cut',
+			            'from': ["/myzone/some/folder",
+			                     "/myzone/another/folder"],
+			            'to': "/myzone/destination/folder"}
+session.request('post', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
+
 *****************
 * Admin section *
 *****************
@@ -219,6 +310,10 @@ GET: returns a list of all zones
             {...}]
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/zone" % base_url
+session.request('get', url)
+
 POST: Creates a single zone or a set of zones
 - data params: None
 - JSON params: 
@@ -231,6 +326,16 @@ POST: Creates a single zone or a set of zones
 - return type: JSON
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
+
+example:
+url = "%s/zone" % base_url
+payload = [{'zone': 'my_first_zone',
+             'path': ''}, # this zone will load the root of the haruba filesystem
+            {'zone': 'my_second_zone',
+             'path': '/my_project/data'}] # this zone will load '/my_project/data' from the root of the haruba filesystem 
+                                          # (so if the haruba filesystem root is /srv/haruba, it will load /srv/haruba/my_project/data)
+session.request('post', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
 
 PUT: Edits a single zone or a set of zones. Only the path is editable.
 - data params:
@@ -248,6 +353,15 @@ PUT: Edits a single zone or a set of zones. Only the path is editable.
 - return type: JSON
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
+
+example:
+url = "%s/zone" % base_url
+payload = [{'id': 1,
+             'path': '/my_new_path'},
+            {'zone': 'my_second_zone',
+             'path': '/my_newer_path'}]
+session.request('put', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
 
 
 Permissions
@@ -273,6 +387,10 @@ GET: returns a list of all users and their permissions
 			}]
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/permissions" % base_url
+session.request('get', url)
+
 POST: grants a set of permissions
 - data params: None
 - JSON params:
@@ -285,6 +403,17 @@ POST: grants a set of permissions
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
 
+example:
+url = "%s/permissions" % base_url
+payload = {'permissions': [{'username': 'my_username',
+                   			'needs': [['zone', 'read', 'my_first_zone'], 
+                             		  ['zone', 'write', 'my_first_zone'],
+                             		  ['zone', 'read', 'my_second_zone'],
+                             		 ]}
+                 		  ]}
+session.request('post', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
+
 DELETE: revokes a set of permissions
 - data params: None
 - JSON params: 
@@ -296,6 +425,17 @@ DELETE: revokes a set of permissions
 - return type: JSON
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
+
+example:
+url = "%s/permissions" % base_url
+payload = {'permissions': [{'username': 'my_username',
+                   			'needs': [['zone', 'read', 'my_first_zone'], 
+                             		  ['zone', 'write', 'my_first_zone'],
+                             		  ['zone', 'read', 'my_second_zone'],
+                             		 ]}
+                 		  ]}
+session.request('delete', url, json=payload)
+# notice how we're using 'json' instead of 'data' to enforce the content-type header
 
 
 

@@ -128,9 +128,12 @@ class File(Requester, Transferrable):
 
 
 class HarubaClient(Requester):
-    def __init__(self, url, login=None, password=None, api_key=None):
+    def __init__(self, url, login=None, password=None,
+                 api_key=None, proxies=None):
         self._s['url'] = url
         self._s['session'] = requests.Session()
+        if proxies:
+            self._s['session'].proxies = proxies
 
         if (not login or not password) and not api_key:
             raise ValueError('no authentication method provided')
