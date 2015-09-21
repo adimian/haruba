@@ -6,9 +6,9 @@ from haruba.database import db, Zone
 from flask import current_app, session
 from flask_restful import reqparse, inputs
 from sqlalchemy.orm.exc import NoResultFound
-from haruba.utils import success, prep_json, get_sigil_client, get_group_root
+from haruba.utils import success, prep_json, get_sigil_client
 from haruba.permissions import (declare_zone_permissions, has_admin_write,
-                                retract_zone_permissions, has_admin_read)
+                                has_admin_read)
 import shutil
 
 

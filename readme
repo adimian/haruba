@@ -1,0 +1,318 @@
+****************
+* User section *
+****************
+
+Login
+=====
+
+Logging in will allow you to interact with the application. When logging in
+you will be provided with cookies. It's essential that you provide these
+cookies every time you make a consequent call.
+
+Url
+---
+
+<base_url>/login
+
+Allowed request methods
+-----------------------
+
+GET: will tell you if you are loggin in or not
+- params: None
+- returns: True/False
+
+POST: making a post request will allow you to log in with either your login/password combination or your api key.
+- params:
+  * login: the user login
+  * password: the user password
+  * (not implemented yet) api key: the api key of the user
+- return type: JSON
+- returns: {"message": <string>}
+- error returns: {"message": <string>}
+
+
+My zones
+========
+
+Haruba maps real filesystem paths to "zones". A Zone is like an Amazon S3 bucket or a separate hard drive.
+All Folders belong to a Zone, Files in turn are located in Folders. Folders can contain other Folders as well.
+With this url you are able to see the zones you are allowed to interact with.
+
+Url
+---
+
+<base_url>/myzones
+
+Allowed request methods
+-----------------------
+GET: returns a list of allowed zones and the access right you have
+- data params: None
+- JSON params: None
+- return type: JSON
+- returns: [{"zone": <zone>, "access": [<string:read>, <string:write>]}, {...}]
+- error returns: {"message": "<string>"}
+
+
+Folder
+======
+
+The folder url will allow you to interact with a given path.
+
+Url
+---
+
+<base_url>/files/<zone> # zone root
+<base_url>/files/<zone>/<path> # deeper into the zone
+
+Allowed request methods
+-----------------------
+
+GET: will assemble a list of current directories and files at the current location.
+- data params: None
+- JSON params: None
+- return type: JSON
+- returns: [{'name': <string>,
+             'is_file': <boolean>,
+             'is_dir': <boolean>,
+             'size': <int>,
+             'modif_date': <string:%Y-%m-%d %H:%M:%S>}, 
+            {...},
+            {...}]
+- error returns: {"message": "<string>"}
+
+POST: will create a folder at a given path.
+- data params: None
+- JSON params: None
+- return type: JSON
+- returns: {"message": <string>}
+- error returns: {"message": <string>}
+
+PUT: will rename a folder or file at a given path
+- data params: 
+  * rename_to: <string> #the file or folder will be renamed to this value
+- JSON params: None
+- return type: JSON
+- returns: {"message": <string>}
+- error returns: {"message": <string>}
+
+DELETE: deletes if the given path is a file
+        if the given path is a folder, it will check for request data
+        if there is data, the files given in the data will be deleted
+        if there is no data, the folder is deleted.
+- data params: None
+- JSON params: 
+  * (optional) file_to_delete: [<string>, <string>] # a list of filenames at the given path to delete.
+  WARNING: Make sure to set the 'content_type' header to 'application/json'. Or you will delete your folder
+- return type: JSON
+- returns: {"message": <string>}
+- error returns: {"message": <string>}
+
+
+Upload
+======
+
+Allows you to upload files to a given path
+
+Url
+---
+<base_url>/upload/<zone>
+<base_url>/upload/<zone>/<path>
+
+Allowed request methods
+-----------------------
+POST: uploads the given files to the given path, the path must be a folder
+- data params: 
+  * files: [<file>, <file>] # list of files to upload
+  * (optional) unpack_zip: <boolean> # if the uploaded files contain a zip, it will unpack the zip if set to true. zip files must end with '.zip'
+  * (optional) delete_zip_after_unpack: <boolean> # will remove the uploaded zip after unpacking if set to true.
+- JSON params: None
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+
+Download
+========
+
+Allows you to download files from a given path
+
+Url
+---
+<base_url>/download/<zone>
+<base_url>/download/<zone>/<path>
+
+Allowed request methods
+-----------------------
+GET: downloads the file or folder (zip) at the given path
+- data params: None
+- JSON params: None
+- return type: File
+- returns: <file>
+- error returns: {"message": "<string>"}
+
+POST: downloads specific files from the given path as a zip
+- data params: 
+  * filenames: [<file>, <file>] # list of files to download
+- JSON params: None
+- return type: File
+- returns: <file>
+- error returns: {"message": "<string>"}
+
+Commands
+========
+
+Commands let you interact with files and folders on a higher level.
+Current command include: Copy, Cut and unzip
+
+Url
+---
+
+<base_url>/command/<zone>
+<base_url>/command/<zone>/<path>
+
+Allowed request methods
+-----------------------
+
+POST: 
+- data params: None
+- JSON params:
+  * commands:   [{'type': 'cut',
+		          'from': ["/<zone>/some/folder",
+		                   "/<zone>/another/folder"],
+		          'to': "/<zone>/destination/folder"},
+		         {'type': 'copy',
+		          'from': ["/<zone>/yet_another/folder"],
+		          'to': "/<zone>/another_destination/folder"},
+		         {'type': 'unzip',
+		          'delete_zip_after_unpack': True}]
+  WARNING: Make sure to set the 'content_type' header to 'application/json'
+  NOTE: Depending on which command you want to execute, you can assemble your commands list as you want. each 'type' is able to be used individually or combined.
+  NOTE: the 'to' key is optional. if not provided, the current url path will be used to fill this key.
+  NOTE: files and folders can be copied to other zones, provided you have the rights.
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+*****************
+* Admin section *
+*****************
+
+Zones
+=====
+
+Zones lets you be able to view, create or update zones
+
+Url
+---
+
+<base_url>/zone
+
+Allowed request methods
+-----------------------
+GET: returns a list of all zones
+- data params: None
+- JSON params: None
+- return type: JSON
+- returns: [{'id': <int>,
+             'name': <string>,
+             'path': <string>},
+            {...}]
+- error returns: {"message": "<string>"}
+
+POST: Creates a single zone or a set of zones
+- data params: None
+- JSON params: 
+  * zones: [{'zone': <zone_name>,
+             'path': <path_extension>},
+            {'zone': <zone_name>,
+             'path': <path_extension>},
+            {...}]
+  WARNING: Make sure to set the 'content_type' header to 'application/json'
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+PUT: Edits a single zone or a set of zones. Only the path is editable.
+- data params:
+- JSON params:
+  * zones: [{'id': <zone_id>,
+             'zone': <zone_name>,
+             'path': <path_extension>},
+            {...},]
+  NOTE: You are allowed to provide both 'id' and 'zone' key but both are also optional, as long as their counterpart is provided.
+  * copy_contents: <boolean> # Moves the old path to the new path if set to true, 
+  							 # if multiple zones depend on the old path, a copy is made instead. 
+  							 # Makes an empty folder at the new path if set to false
+  * adopt_if_exists: <boolean> # Adopts the new path if it already exists on the server if set to true.
+  							   # Will throw an error if the new path already exists if set to false.
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+
+Permissions
+===========
+
+Lets you define user permissions for the existing zones.
+Current permissions are 'read' and 'write'
+
+Url
+---
+
+<base_url>/permissions
+
+Allowed request methods
+-----------------------
+GET: returns a list of all users and their permissions
+- data params: None
+- JSON params: None
+- return type: JSON
+- returns: [{<user data key>: <user data>,
+			 'permissions': {'<zone>': ['<permission>', '<permission>'],
+			                 '<zone>': ['<permission>']}
+			}]
+- error returns: {"message": "<string>"}
+
+POST: grants a set of permissions
+- data params: None
+- JSON params:
+  * permissions: [{'username': '<username>',
+                   'needs': [['zone', '<permission>', '<zone>'], 
+                             ['zone', '<permission>', '<zone>']]}
+                 ]
+  WARNING: Make sure to set the 'content_type' header to 'application/json'
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+DELETE: revokes a set of permissions
+- data params: None
+- JSON params: 
+  * permissions: [{'username': '<username>',
+                   'needs': [['zone', '<permission>', '<zone>'], 
+                             ['zone', '<permission>', '<zone>']]}
+                 ]
+  WARNING: Make sure to set the 'content_type' header to 'application/json'
+- return type: JSON
+- returns: {"message": "<string>"}
+- error returns: {"message": "<string>"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
