@@ -118,7 +118,7 @@ GET: will assemble a list of current directories and files at the current locati
 - error returns: {"message": "<string>"}
 
 example:
-url = "%s/files/myfolder1" % base_url
+url = "%s/files/my_zone/myfolder1" % base_url
 session.request('get', url)
 
 POST: will create a folder at a given path.
@@ -129,7 +129,7 @@ POST: will create a folder at a given path.
 - error returns: {"message": <string>}
 
 example:
-url = "%s/files/myfolder1/my_new_folder" % base_url
+url = "%s/files/my_zone/myfolder1/my_new_folder" % base_url
 session.request('post', url)
 
 PUT: will rename a folder or file at a given path
@@ -141,7 +141,7 @@ PUT: will rename a folder or file at a given path
 - error returns: {"message": <string>}
 
 example:
-url = "%s/files/myfolder1/my_old_folder" % base_url
+url = "%s/files/my_zone/myfolder1/my_old_folder" % base_url
 payload = {'rename_to': 'my_new_named_folder'}
 session.request('put', url, data=payload)
 
@@ -159,15 +159,15 @@ DELETE: deletes if the given path is a file
 
 example:
 # delete the whole folder
-url = "%s/files/myfolder1/my_to_delete_folder" % base_url
+url = "%s/files/my_zone/myfolder1/my_to_delete_folder" % base_url
 session.request('delete', url)
 
 # delete a specific file
-url = "%s/files/myfolder1/my_to_delete_file" % base_url
+url = "%s/files/my_zone/myfolder1/my_to_delete_file" % base_url
 session.request('delete', url)
 
 # delete the specific files in the folder
-url = "%s/files/myfolder1/my_to_delete_folder" % base_url
+url = "%s/files/my_zone/myfolder1/my_to_delete_folder" % base_url
 payload = {'file_to_delete': ['some_file', 'another_file']}
 session.request('delete', url, json=payload)
 # notice how we're using 'json' instead of 'data' to enforce the content-type header
@@ -187,21 +187,22 @@ Allowed request methods
 -----------------------
 POST: uploads the given files to the given path, the path must be a folder
 - data params: 
-  * files: [<file>, <file>] # list of files to upload
   * (optional) unpack_zip: <boolean> # if the uploaded files contain a zip, it will unpack the zip if set to true. zip files must end with '.zip'
   * (optional) delete_zip_after_unpack: <boolean> # will remove the uploaded zip after unpacking if set to true.
 - JSON params: None
+- File params: 
+  * files: [("files", <file1>), ("files", <file2>)] # list of files to upload
 - return type: JSON
 - returns: {"message": "<string>"}
 - error returns: {"message": "<string>"}
 
 example:
-url = "%s/upload/myfolder1" % base_url
-payload = {'files': [open('/path/to/file.txt', 'rb'),
-					 open('/path/to/file.zip', 'rb')],
-		   'unpack_zip': True,
+url = "%s/upload/my_zone/myfolder1" % base_url
+files = [("files", open('/path/to/file.txt', 'rb')),
+		 ("files", open('/path/to/file.zip', 'rb'))]
+payload = {'unpack_zip': True,
 		   'delete_zip_after_unpack': True}
-session.request('post', url, data=payload)
+session.request('post', url, files=files, data=payload)
 
 
 Download
@@ -224,7 +225,7 @@ GET: downloads the file or folder (zip) at the given path
 - error returns: {"message": "<string>"}
 
 example:
-url = "%s/upload/myfolder1/myfile" % base_url
+url = "%s/download/my_zone/myfolder1/myfile" % base_url
 session.request('get', url)
 
 POST: downloads specific files from the given path as a zip
@@ -236,7 +237,7 @@ POST: downloads specific files from the given path as a zip
 - error returns: {"message": "<string>"}
 
 example:
-url = "%s/download/myfolder1" % base_url
+url = "%s/download/my_zone/myfolder1" % base_url
 payload = {'filenames': ['file1.txt', 'file2.jpg']}
 session.request('post', url, data=payload)
 
@@ -276,11 +277,12 @@ POST:
 - error returns: {"message": "<string>"}
 
 example:
-url = "%s/command/myfolder1" % base_url
-payload = {'commands': {'type': 'cut',
+url = "%s/command/myzone/myfolder1" % base_url
+payload = {'commands': [{'type': 'cut',
 			            'from': ["/myzone/some/folder",
 			                     "/myzone/another/folder"],
-			            'to': "/myzone/destination/folder"}
+			            'to': "/myzone/destination/folder"}]
+		  }
 session.request('post', url, json=payload)
 # notice how we're using 'json' instead of 'data' to enforce the content-type header
 
