@@ -149,3 +149,24 @@ def test_delete_specific_files(authenticated_client):
                                        "folder2", "folder2-file2"))
     remove_srv()
     make_srv()
+
+
+def test_delete_specific_files_wrong_keyword(authenticated_client):
+    ac = authenticated_client
+    data = {'file_to_delete': ["folder2-file1"]}
+    r = ac.delete("/files/test_zone/folder2", data=json.dumps(data),
+                  content_type='application/json')
+    is_in_data(r, 'message', 'Wrong parameters found, aborting to prevent '
+                             'unwanted deletion')
+    remove_srv()
+    make_srv()
+
+
+def test_delete_specific_files_form_data(authenticated_client):
+    ac = authenticated_client
+    data = {'file_to_delete': ["folder2-file1"]}
+    r = ac.delete("/files/test_zone/folder2", data=data)
+    is_in_data(r, 'message', 'Detected form data, aborting to prevent '
+                             'unwanted deletion')
+    remove_srv()
+    make_srv()

@@ -168,7 +168,7 @@ session.request('delete', url)
 
 # delete the specific files in the folder
 url = "%s/files/my_zone/myfolder1/my_to_delete_folder" % base_url
-payload = {'file_to_delete': ['some_file', 'another_file']}
+payload = {'files_to_delete': ['some_file', 'another_file']}
 session.request('delete', url, json=payload)
 # notice how we're using 'json' instead of 'data' to enforce the content-type header
 

@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 from scandir import scandir
 from datetime import datetime
@@ -129,6 +130,18 @@ class Folder(ProtectedResource):
             parser = reqparse.RequestParser()
             parser.add_argument('files_to_delete', type=list, location='json')
             args = parser.parse_args()
+
+            if request.content_type == "application/json":
+                request.json.pop('files_to_delete', None)
+                if request.json:
+                    abort(400, "Wrong parameters found, aborting to prevent "
+                               "unwanted deletion. Found '%s', the only valid"
+                               " key is 'files_to_delete'"
+                               % "', '".join(request.json.keys()))
+            if request.form:
+                abort(400, "Detected form data, aborting to prevent "
+                           "unwanted deletion. Please set the content-type "
+                           "header to 'application/json' to make your request")
 
             undeleted_files = []
             if args['files_to_delete']:
