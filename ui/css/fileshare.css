@@ -333,6 +333,7 @@ body{
 	border-bottom: 1px solid lightgrey;
 	margin-bottom: 5px;
 	overflow: scroll;
+    max-height: 500px
 }
 
 .dialog_container button{

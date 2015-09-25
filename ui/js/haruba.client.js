@@ -1,4 +1,8 @@
 var show_error = function(xhr, ajaxOptions, thrownError){
+	if(xhr.status == "500"){
+		HDialog("An error occured", xhr.responseText, function(){})
+		return;
+	}
 	error_message = JSON.parse(xhr.responseText)['message']
 	if(xhr.status == "401" && error_message == "token has expired"){
 		hclient.am_i_logged_in(function(){})
@@ -7,7 +11,11 @@ var show_error = function(xhr, ajaxOptions, thrownError){
 	}
 };
 
-var request = function(type, url, form_data, success_func, has_json){
+var request = function(type, url, form_data, success_func, has_json, error_func){
+	console.log(error_func)
+	if(!error_func){
+		error_func = show_error
+	}
 	data = {
 	    url: url,
 	    type: type,
@@ -16,7 +24,7 @@ var request = function(type, url, form_data, success_func, has_json){
 	        withCredentials: true
 	    },
 	    success: success_func,
-	    error: show_error,
+	    error: error_func,
 	    cache: false,
 	};
 	if(has_json){
@@ -26,14 +34,16 @@ var request = function(type, url, form_data, success_func, has_json){
 	$.ajax(data);
 };
 
-var post = function(url, data, success_func, has_json){
-	request('post', url, data, success_func, has_json)};
-var put = function(url, data, success_func, has_json){
-	request('put', url, data, success_func, has_json)};
-var del = function(url, data, success_func, has_json){
-	request('delete', url, data, success_func, has_json)};
-var get = function(url, success_func){
-	request('get', url, [], success_func)};
+var post = function(url, data, success_func, has_json, error_func){
+	console.log(has_json)
+	console.log(error_func)
+	request('post', url, data, success_func, has_json, error_func)};
+var put = function(url, data, success_func, has_json, error_func){
+	request('put', url, data, success_func, has_json, error_func)};
+var del = function(url, data, success_func, has_json, error_func){
+	request('delete', url, data, success_func, has_json, error_func)};
+var get = function(url, success_func, error_func){
+	request('get', url, [], success_func, false, error_func)};
 
 function HRequest(){
 	this.service_url = HARUBA_API_URL;
@@ -165,6 +175,8 @@ HClient.prototype.login = function(username, password){
 	data = {"login": username,
 			"password": password};
 	
+	var el = $("#error-message")
+	el.hide();
 	post(this.get_url("/login"), data, function(data, text, xrh){
 		if(!initialised){	
 			$.get("/app.html", function(data){
@@ -174,6 +186,15 @@ HClient.prototype.login = function(username, password){
 		}else{
 			$("#login-fader").remove();
 		}
+	}, false, function(xhr, ajaxOptions, thrownError){
+		console.log(xhr.responseText)
+		if(xhr.status == "500"){
+			HDialog("An error occured", xhr.responseText, function(){})
+			return;
+		}
+		error_message = JSON.parse(xhr.responseText)['message']
+		el.html(error_message)
+		el.show()
 	});
 }
 HClient.prototype.logout = function(){

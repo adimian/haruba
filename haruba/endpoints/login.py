@@ -6,6 +6,7 @@ from flask import current_app, session
 from flask_restful import Resource, reqparse
 from flask_login import login_user, current_user, logout_user
 from flask_principal import Identity, identity_changed, abort
+from ..utils import WrappedSigilClient
 
 login_manager = LoginManager()
 
@@ -37,9 +38,8 @@ class User(object):
 
 
 def request_authentication(username, password):
-    api_url = current_app.config['SIGIL_API_URL']
     app_name = current_app.config['SIGIL_APP_NAME']
-    client = SigilClient(api_url, username=username, password=password)
+    client = WrappedSigilClient(username=username, password=password)
     client.login()
     session['sigil_token'] = client._token
     details = client.user_details()

@@ -21,13 +21,17 @@ def get_sigil_client():
 
 
 class WrappedSigilClient(object):
-    def __init__(self):
-        self.client = SigilClient(current_app.config['SIGIL_API_URL'])
+    def __init__(self, *args, **kwargs):
+        self.client = SigilClient(current_app.config['SIGIL_API_URL'],
+                                  *args, **kwargs)
         self.client._token = session.get('sigil_token')
 
     def __getattr__(self, name):
         try:
-            return self.wrap(getattr(self.client, name))
+            attr = getattr(self.client, name)
+            if callable(attr):
+                return self.wrap(attr)
+            return attr
         except Exception as e:
             abort(400, str(e))
 
@@ -40,8 +44,6 @@ class WrappedSigilClient(object):
                     logout_user()
                     abort(401, str(e))
                 else:
-                    print(e)
-                    print(func)
                     abort(400, str(e))
         return outer
 
