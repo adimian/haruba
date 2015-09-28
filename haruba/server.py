@@ -13,10 +13,6 @@ setup_endpoints()
 def create_db():
     print("creating db")
     db.create_all()
-    if app.config['SIGIL_APP_KEY'] and app.config['SIGIL_API_URL']:
-        print('updating needs')
-        update_needs(url=app.config['SIGIL_API_URL'],
-                     app_key=app.config['SIGIL_APP_KEY'])
 
 
 manager = Manager(app)
@@ -28,17 +24,7 @@ def register_app(url, app_name, credentials):
     client = SigilClient(url, **credentials)
     client.login()
     app_key = client.new_app(app_name)
-    update_needs(app_key)
-
-
-def update_needs(url, app_key):
-    application = SigilApplication(url, app_key)
-    # these need declarations are of no use. needs per zone are created
-    # on each zone create, haruba is not using these the following needs
-    needs = (('zone', 'write'),
-             ('zone', 'read'))
-    updated_needs = application.declare(needs)
-    logger.info('updated needs: {}'.format(updated_needs))
+    print(app_key)
 
 
 @manager.command

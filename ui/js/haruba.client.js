@@ -12,7 +12,6 @@ var show_error = function(xhr, ajaxOptions, thrownError){
 };
 
 var request = function(type, url, form_data, success_func, has_json, error_func){
-	console.log(error_func)
 	if(!error_func){
 		error_func = show_error
 	}
@@ -202,6 +201,12 @@ HClient.prototype.logout = function(){
 		$.get("/login.html", function(data){
 			$("body").html(data);
 		});
+	});
+}
+HClient.prototype.user_details = function(success_func){
+	get(this.get_url("/user/details"), function(data, text, xrh){
+		console.log(data)
+		success_func(data)
 	});
 }
 HClient.prototype.upload = function(group, path, files, extra_data, progress_func, setui_func, success_func){

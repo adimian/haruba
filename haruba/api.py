@@ -6,7 +6,7 @@ from flask_restful import Api
 from raven.contrib.flask import Sentry
 
 from .endpoints.permission import Permissions
-from .endpoints.login import Login, login_manager, Logout
+from .endpoints.login import Login, login_manager, Logout, UserDetails
 from .endpoints.folder import Folder
 from .endpoints.zone import MyZones, Zones
 from .endpoints.transfer import Upload, Download
@@ -39,6 +39,7 @@ def setup_endpoints():
     api = Api(app, prefix=app.config['API_URL_PREFIX'])
     api.add_resource(Login, '/login')
     api.add_resource(Logout, '/logout')
+    api.add_resource(UserDetails, '/user/details')
     api.add_resource(Folder, '/files/<group>', '/files/<group>/<path:path>')
     api.add_resource(Upload, '/upload/<group>', '/upload/<group>/<path:path>')
     api.add_resource(Download,

@@ -82,6 +82,7 @@ function ZoneViewModel(){
 	self.search = search;
 	self.query.subscribe(self.search);
 	self.load_admin = function(){$.get("/admin.html", function(data){ $("body").html(data);})};
+	self.load_profile = function(){$.get("/profile.html", function(data){ $("body").html(data);})};
 	self.init_search = function(){hclient.folder.content(current_zone, current_path, zvm.complete_folder)};
 	
 	self.options = ko.observableArray([new OptionAction(self.option_upload, 'glyphicon-upload', ' Upload', "", false, true, true),

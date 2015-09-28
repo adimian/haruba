@@ -1,0 +1,41 @@
+<div class="container">
+  <div class="header-menu">
+    <div class="app-name">Haruba</div>
+    <div class="header-menu-item" data-bind="click: $root.logout">
+      <span class="glyphicon glyphicon glyphicon-off"></span> Logout
+    </div>
+    <div class="header-menu-item" data-bind="click: $root.load_admin">
+  	  <span class="glyphicon glyphicon glyphicon-cog"></span> Admin
+  	</div>
+    <div class="header-menu-item" data-bind="click: $root.load_profile">
+      <span class="glyphicon glyphicon glyphicon-user"></span> Profile
+    </div>
+    <div class="header-menu-item" data-bind="click: $root.load_home">
+      <span class="glyphicon glyphicon glyphicon-home"></span> Home
+    </div>
+  </div>
+  <div class="menu">
+    <div class="menu-item menu-item-selected" style="border-bottom: 1px solid #385F88;">
+      <span class="glyphicon glyphicon-user"></span> Profile
+    </div>
+  </div>
+  <div class="content">
+    <div class="admin_section">
+      <div class="admin_title" >Details</div>
+      <div class="admin_content" data-bind="foreach: user_details">
+        <div class="admin-item">
+          <div class="admin-label" data-bind="text: $data.key"></div>
+          <div class="admin-row">
+          	<div class="admin-value" id="zone-value" data-bind="html: $data.value()"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/haruba.profileviewmodel.js"></script>
+<script>
+ko.cleanNode($('html')[0]);
+ko.applyBindings(pvm);
+hclient.user_details(pvm.process_details)
+</script>

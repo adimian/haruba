@@ -28,6 +28,14 @@ def users_error(*args, **kwargs):
     raise Exception('some error')
 
 
+def user_details(*args, **kwargs):
+    return copy.deepcopy(USER_LIST['users'][0])
+
+
+def api_key(*args, **kwargs):
+    return 'some_api_key'
+
+
 @patch("sigil_client.SigilClient.list_users", users)
 @patch("sigil_client.SigilClient.provides", permissions)
 def test_get_permissions(admin_client):
@@ -135,3 +143,19 @@ def test_wrong_permissions3(admin_client):
     assert r.status_code == 400
     is_in_data(r, 'message',
                "A need item must have a 'username' and 'needs' key")
+
+
+@patch("sigil_client.SigilClient.user_details", user_details)
+@patch("sigil_client.SigilClient.get_api_key", api_key)
+def test_get_user_details(authenticated_client):
+    expected = {'provides': [{'zone': 'test_zone',
+                              'access': ['read', 'write']}],
+                'api_key': 'some_api_key',
+                'id': 1,
+                'username': 'alice',
+                'display_name': 'alice alice'}
+    ac = authenticated_client
+    r = ac.get("/user/details")
+    assert r.status_code == 200
+    data = json.loads(r.data.decode('utf-8'))
+    assert data == expected

@@ -22,6 +22,7 @@ function AdminViewModel(){
 	//behaviour
 	self.logout = function(){hclient.logout()};
 	self.load_home = function(){$.get("/app.html", function(data){ $("body").html(data);})};
+	self.load_profile = function(){$.get("/profile.html", function(data){ $("body").html(data);})};
 	self.load_zone = load_zone;
 	self.init_create_zone = init_create_zone;
 	self.create_zone = create_zone;
