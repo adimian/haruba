@@ -37,10 +37,11 @@ class User(object):
         self.zones[zone].append(permission)
 
 
-def request_authentication(username, password):
+def request_authentication(username, password, totp, api_key):
     app_name = current_app.config['SIGIL_APP_NAME']
-    client = WrappedSigilClient(username=username, password=password)
-    client.login()
+    client = WrappedSigilClient(username=username, password=password,
+                                api_key=api_key)
+    client.login(totp=totp)
     session['sigil_token'] = client._token
     details = client.user_details()
     details.update(client.provides(context=app_name))
@@ -59,14 +60,22 @@ class Login(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('login', type=str, required=True)
-        parser.add_argument('password', type=str, required=True)
+        parser.add_argument('login', type=str)
+        parser.add_argument('password', type=str)
+        parser.add_argument('totp', type=str)
+        # OR
+        parser.add_argument('api_key', type=str)
         args = parser.parse_args()
 
-        login = args['login']
-        user = request_authentication(login, args['password'])
+        if not (args.get('login') or args.get('api_key')):
+            abort(400, "Must provide login or api key")
+        # let sigil take care of the other error handling,
+        # just relay the message to the user
+        user = request_authentication(args.get('login'), args.get('password'),
+                                      args.get('totp'), args.get('api_key'))
         if user.get('username'):
-            login_user(User(user['username'], user['provides']))
+            login = user['username']
+            login_user(User(login, user['provides']))
             session['provides'] = user['provides']
             identity_changed.send(current_app._get_current_object(),
                                   identity=Identity(login))
