@@ -5,25 +5,37 @@
        <div class="panel-heading">Please login</div>
        <div class="panel-body">
          <div class="form-horizontal">
-           <div class="alert alert-danger" style="display:none;" id="error-message"></div>
+           <div class="alert alert-danger" id="error-message" data-bind="visible: !!error_message(),
+           																 text: error_message"></div>
+           <div class="alert alert-info" id="info-message" data-bind="visible: !!sms_message(),
+           															  text: sms_message"></div>
            <div class="form-group">
              <label for="email" class="col-sm-2 control-label">Username</label>
              <div class="col-sm-10">
                <input type="text" name="login" value=""
-                      class="form-control" id="login" placeholder="username">
+                      class="form-control" id="login" placeholder="username" data-bind="value: user_account.username, valueUpdate: 'keyup'">
              </div>
            </div>
            <div class="form-group">
              <label for="password" class="col-sm-2 control-label">Password</label>
              <div class="col-sm-10">
-               <input type="password" name="password" class="form-control" id="password">
+               <input type="password" name="password"  placeholder="password" class="form-control" id="password" data-bind="value: user_account.password">
+             </div>
+           </div>
+           <div class="form-group" data-bind="visible: server_options.use_totp()">
+             <label for="totp" class="col-sm-2 control-label">PIN Code</label>
+             <div class="col-sm-8">
+               <input type="text" name="totp" class="form-control" id="totp" placeholder="PIN" data-bind="value: user_account.totp">
+             </div>
+             <div class="col-sm-2" style="margin-left:-23px;">
+               <button id="send-sms" class="btn btn-success" style="min-width: 100px;" data-bind="click: $root.send_sms,
+               																					  enable: !!$root.user_account.username()">Send SMS</button>
              </div>
            </div>
            <div class="form-group">
              <div class="col-sm-offset-2 col-sm-10">
                <button id="login-button" class="btn btn-success" type="submit" 
-                       onclick="hclient.login($('#login').val(), $('#password').val())"
-                       style="float:right; min-width:100px;">Ok</button>
+                       style="float:right; min-width:100px;" data-bind="click: $root.login">Ok</button>
 	         <a href="#" onclick="window.location = SIGIL_BASE_URL + SIGIL_RECOVER_URL" 
 	            style="float: right; margin-right: 10px; margin-top: 5px;">Recover Password?</a>
              </div>
@@ -34,3 +46,6 @@
    </div>
  </div>
 </div>
+<script>
+init_login();
+</script>

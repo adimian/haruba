@@ -61,6 +61,7 @@ function ProfileViewModel(){
 	self.load_admin = function(){$.get("/admin.html", function(data){ $("body").html(data);})};
 	self.load_home = function(){$.get("/app.html", function(data){ $("body").html(data);})};
 	self.load_profile = function(){$.get("/profile.html", function(data){ $("body").html(data);})};
+	self.logout = function(){hclient.logout()};
 	self.process_details = function(data){
 		$.each(sorted, function(idx, key){
 			value = data[key]

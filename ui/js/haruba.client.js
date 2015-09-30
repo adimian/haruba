@@ -170,12 +170,12 @@ HClient.prototype.am_i_logged_in = function(success_func){
 		}
 	});
 }
-HClient.prototype.login = function(username, password){
+HClient.prototype.login = function(username, password, totp){
 	data = {"login": username,
-			"password": password};
+			"password": password,
+			"totp": totp};
 	
-	var el = $("#error-message")
-	el.hide();
+	window.login_app.error_message("")
 	post(this.get_url("/login"), data, function(data, text, xrh){
 		if(!initialised){	
 			$.get("/app.html", function(data){
@@ -192,8 +192,7 @@ HClient.prototype.login = function(username, password){
 			return;
 		}
 		error_message = JSON.parse(xhr.responseText)['message']
-		el.html(error_message)
-		el.show()
+		window.login_app.error_message(error_message)
 	});
 }
 HClient.prototype.logout = function(){
