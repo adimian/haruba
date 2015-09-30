@@ -35,6 +35,17 @@ class User(object):
         _, permission, zone = permissions
         self.zones[zone].append(permission)
 
+    def user_details(self, get_api_key=True):
+        client = get_sigil_client()
+        details = client.user_details()
+        if get_api_key:
+            details['api_key'] = client.get_api_key()
+        zones = []
+        for key, values in current_user.zones.items():
+            zones.append({"zone": key, "access": values})
+        details['provides'] = zones
+        return details
+
 
 def request_authentication(username, password, totp, api_key):
     app_name = current_app.config['SIGIL_APP_NAME']
@@ -89,11 +100,4 @@ class Logout(ProtectedResource):
 
 class UserDetails(ProtectedResource):
     def get(self):
-        client = get_sigil_client()
-        details = client.user_details()
-        details['api_key'] = client.get_api_key()
-        zones = []
-        for key, values in current_user.zones.items():
-            zones.append({"zone": key, "access": values})
-        details['provides'] = zones
-        return details
+        return current_user.user_details()

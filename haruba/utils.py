@@ -4,12 +4,27 @@ import zipfile
 from flask import current_app, jsonify, session, abort
 from flask_login import logout_user, current_user
 from sigil_client import SigilClient
+from functools import wraps
 
 from .database import db, Zone
 
 
 FILE_TYPE = 'file'
 FOLDER_TYPE = 'folder'
+
+
+def login_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated():
+            return current_app.login_manager.unauthorized()
+        # adding the user to the sentry context
+        from .api import sentry
+        if sentry:
+            sentry.user_context(current_user.user_details(get_api_key=False))
+
+        return func(*args, **kwargs)
+    return decorated_view
 
 
 def prep_json(*args, **kwargs):
@@ -56,9 +71,6 @@ def success(message):
     return resp
 
 
-# ---------------- FILE OPERATIONS ----------------
-# transforms pyrene_prod groups to /srv/prod/data/pyrene
-# transforms pyrene_prod_backup to /srv/prod/backup/pyrene
 def get_group_root(group_name):
     server_root = current_app.config['HARUBA_SERVE_ROOT']
     zone = db.session.query(Zone).filter_by(name=group_name).one()

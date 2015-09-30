@@ -6,7 +6,7 @@ from flask_principal import Principal
 from flask_principal import identity_loaded, UserNeed, Permission
 from sigil_client import SigilApplication
 
-from .utils import get_group_root
+from .utils import get_group_root, login_required
 
 
 principal = Principal()
@@ -17,6 +17,7 @@ READ_PERMISSION = 'read'
 WRITE_PERMISSION = 'write'
 
 
+@login_required
 def process_request(func, args, kwargs, context, permission):
     group = kwargs.get('group', None)
     if group:

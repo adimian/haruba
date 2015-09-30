@@ -28,10 +28,12 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 
+sentry = None
 if app.config['SENTRY_DSN']:
+    logger.info('Sentry is active')
     sentry = Sentry(app)
 else:
-    logger.warning("sentry not enabled !")
+    logger.info('Sentry is inactive')
 
 
 def setup_endpoints():
