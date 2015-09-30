@@ -3,6 +3,7 @@ import sys
 
 from flask import Flask
 from flask_restful import Api
+from flask_alembic import Alembic
 from raven.contrib.flask import Sentry
 
 from .endpoints.permission import Permissions
@@ -27,6 +28,7 @@ principal.init_app(app)
 set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
+alembic = Alembic(app)
 
 sentry = None
 if app.config['SENTRY_DSN']:

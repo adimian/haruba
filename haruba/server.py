@@ -1,5 +1,6 @@
 from flask_script import Manager, Server, prompt_pass, prompt
-from sigil_client import SigilClient, SigilApplication
+from sigil_client import SigilClient
+from flask_alembic.cli.script import manager as alembic_manager
 
 from haruba.database import db
 from haruba.api import app, setup_endpoints
@@ -18,6 +19,7 @@ def create_db():
 manager = Manager(app)
 manager.add_command("runserver", Server(host=app.config['HOST'],
                                         port=app.config['PORT']))
+manager.add_command('db', alembic_manager)
 
 
 def register_app(url, app_name, credentials):
