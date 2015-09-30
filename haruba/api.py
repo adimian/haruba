@@ -1,7 +1,8 @@
 import logging
 import sys
+import os
 
-from flask import Flask
+from flask import Flask, send_from_directory, safe_join
 from flask_restful import Api
 from flask_alembic import Alembic
 from raven.contrib.flask import Sentry
@@ -36,6 +37,21 @@ if app.config['SENTRY_DSN']:
     sentry = Sentry(app)
 else:
     logger.info('Sentry is inactive')
+
+if app.config['SERVE_STATIC']:
+    # static files
+    @app.route('{}/'.format(app.config['UI_URL_PREFIX']))
+    @app.route('{}/<path:path>'.format(app.config['UI_URL_PREFIX']))
+    def serve(path=""):
+        d = os.path.dirname
+        root = d(d(os.path.abspath(__file__)))
+        file = os.path.basename(path)
+        path = d(path)
+        if not file:
+            file = 'index.html'
+        path = safe_join(safe_join(root, 'ui'), path)
+        print(path, file)
+        return send_from_directory(path, file)
 
 
 def setup_endpoints():
