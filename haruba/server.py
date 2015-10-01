@@ -1,8 +1,8 @@
+import os
 from flask_script import Manager, Server, prompt_pass, prompt
 from sigil_client import SigilClient
 from flask_alembic.cli.script import manager as alembic_manager
 
-from haruba.database import db
 from haruba.api import app, setup_endpoints, alembic
 import logging
 logger = logging.getLogger('haruba.server')
@@ -25,6 +25,24 @@ def register_app(url, app_name, credentials):
 @manager.command
 def init():
     alembic.upgrade()
+
+
+@manager.command
+def generate_ui_conf():
+    ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+    PROJECT_DIR = os.path.abspath(os.path.join(ROOT_DIR, os.pardir))
+    keys = {"HARUBA_API_URL": app.config['API_URL_PREFIX'],
+            "SIGIL_BASE_URL": app.config['SIGIL_BASE_URL'],
+            "SIGIL_API_URL": app.config['SIGIL_API_URL'],
+            "SIGIL_UI_URL": app.config['SIGIL_UI_URL'],
+            "SIGIL_RECOVER_URL": "%s/recover.html" % app.config['SIGIL_UI_URL']
+            }
+
+    conf_location = os.path.join(PROJECT_DIR, "ui", "js", "haruba.config.js")
+    with open(conf_location, "wb+") as fh:
+        fh.write(b'"use strict"\n')
+        for key, value in keys.items():
+            fh.write(bytes("var %s = '%s';\n" % (key, value), "utf-8"))
 
 
 @manager.command

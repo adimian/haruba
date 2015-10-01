@@ -31,7 +31,7 @@ var LoginAccountApplication = function() {
         $.ajax({
             method: "POST",
             dataType: "json",
-            url: SIGIL_BASE_URL + SIGIL_API_URL + '/user/2fa/sms',
+            url: SIGIL_API_URL + '/user/2fa/sms',
             data: data,
             success: success
         }).error(function(data) {

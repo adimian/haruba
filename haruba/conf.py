@@ -31,7 +31,9 @@ def configure(app):
     set_default('UI_URL_PREFIX', '')
 
     set_default('SIGIL_APP_KEY', 'WzIsImZmMjM5YzU0ZDBmMzBlNDQ2N2ZmNGYzN2M5NmNkZmQxIl0.CNAp1A.uzrhvwHG5xZuFnITHdkaH3_6dd4')
-    set_default('SIGIL_API_URL', 'http://docker.dev/sigil-api')  # no trailing slash
+    set_default('SIGIL_BASE_URL', 'http://docker.dev')
+    set_default('SIGIL_API_URL', '%s/sigil-api' % config['SIGIL_BASE_URL'])  # no trailing slash
+    set_default('SIGIL_UI_URL', '%s/sigil' % config['SIGIL_BASE_URL'])
     set_default('SIGIL_APP_NAME', 'haruba')
     set_default('HARUBA_SERVE_ROOT', '/tmp/haruba')
     set_default('HARUBA_ZONE_DEFAULT', 'data')
