@@ -121,10 +121,8 @@ class Command(ProtectedWriteResource):
         if not os.path.isdir(destination_folder):
             abort(400, "%s must be a directory" % request.path)
 
-        print("check from")
         if not command.get('from'):
             abort(400, "To copy or cut you must provide a 'from' key")
-        print("checked from")
 
         for copy_file in command['from']:
             filepath_from, _ = get_path_from_group_url(copy_file)

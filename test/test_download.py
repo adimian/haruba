@@ -48,6 +48,20 @@ def test_download_multiple_file(authenticated_client):
         assert zf.filename in expected_files
 
 
+def test_download_multiple_files_folder(authenticated_client):
+    ac = authenticated_client
+    files = ['folder2']
+    data = {"filenames": files}
+    r = ac.post("/download/test_zone", data=data)
+    assert r.status_code == 200
+    expected_files = ['folder2/folder2-file1', 'folder2/folder2-file2']
+    zp = zipfile.ZipFile(BytesIO(r.data))
+    il = zp.infolist()
+    assert len(il) == 2
+    for zf in il:
+        assert zf.filename in expected_files
+
+
 def test_download_multiple_non_existing_file(authenticated_client):
     ac = authenticated_client
     files = ['folder2-file4', 'folder2-file2']

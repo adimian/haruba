@@ -40,13 +40,10 @@ def assemble_directory_contents(group, path):
 
 def delete_file_or_folder(file_or_folder):
     try:
-        if os.path.exists(file_or_folder):
-            if os.path.isfile(file_or_folder):
-                os.remove(file_or_folder)
-            else:
-                shutil.rmtree(file_or_folder)
+        if os.path.isfile(file_or_folder):
+            os.remove(file_or_folder)
         else:
-            return False
+            shutil.rmtree(file_or_folder)
     except Exception:
         return False
     return True
@@ -103,13 +100,10 @@ class Folder(ProtectedResource):
     def rename(self, path, new_name):
         old_path = path
         new_path = os.path.join(os.path.dirname(path), new_name)
-        if os.path.exists(new_path):
-            abort(400, "%s already exists." % request.url)
-        else:
-            try:
-                os.rename(old_path, new_path)
-            except Exception:
-                abort(400, "Could not rename %s" % request.url)
+        try:
+            os.rename(old_path, new_path)
+        except Exception:
+            abort(400, "Could not rename %s" % request.url)
 
     @has_write
     def delete(self, group, group_root, path=""):

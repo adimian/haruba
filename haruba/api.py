@@ -50,7 +50,6 @@ if app.config['SERVE_STATIC']:
         if not file:
             file = 'index.html'
         path = safe_join(safe_join(root, 'ui'), path)
-        print(path, file)
         return send_from_directory(path, file)
 
 

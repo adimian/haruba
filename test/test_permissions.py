@@ -159,3 +159,29 @@ def test_get_user_details(authenticated_client):
     assert r.status_code == 200
     data = json.loads(r.data.decode('utf-8'))
     assert data == expected
+
+
+def expired_token(*args, **kwargs):
+    raise Exception("token has expired")
+
+
+@patch("sigil_client.SigilClient.grant", expired_token)
+def test_grant_permissions_expired_token(admin_client):
+    ac = admin_client
+    content = json.dumps(data)
+    r = ac.post("/permissions", data=content,
+                content_type='application/json')
+    assert r.status_code == 401
+
+
+def wrapped_exception(*args, **kwargs):
+    raise Exception("some exception")
+
+
+@patch("haruba.utils.WrappedSigilClient.wrap", wrapped_exception)
+def test_grant_permissions_wrap_exception(admin_client):
+    ac = admin_client
+    content = json.dumps(data)
+    r = ac.post("/permissions", data=content,
+                content_type='application/json')
+    assert r.status_code == 400
