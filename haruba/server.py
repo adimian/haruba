@@ -3,18 +3,11 @@ from sigil_client import SigilClient
 from flask_alembic.cli.script import manager as alembic_manager
 
 from haruba.database import db
-from haruba.api import app, setup_endpoints
+from haruba.api import app, setup_endpoints, alembic
 import logging
 logger = logging.getLogger('haruba.server')
 
 setup_endpoints()
-
-
-@app.before_first_request
-def create_db():
-    print("creating db")
-    db.create_all()
-
 
 manager = Manager(app)
 manager.add_command("runserver", Server(host=app.config['HOST'],
@@ -27,6 +20,11 @@ def register_app(url, app_name, credentials):
     client.login()
     app_key = client.new_app(app_name)
     print(app_key)
+
+
+@manager.command
+def init():
+    alembic.upgrade()
 
 
 @manager.command
