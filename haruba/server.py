@@ -28,14 +28,16 @@ def init():
 
 
 @manager.command
-def generate_ui_conf():
+def generate_ui_conf(public_sigil_url, api_extention, ui_extention):
     ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
     PROJECT_DIR = os.path.abspath(os.path.join(ROOT_DIR, os.pardir))
+
     keys = {"HARUBA_API_URL": app.config['API_URL_PREFIX'],
-            "SIGIL_BASE_URL": app.config['SIGIL_BASE_URL'],
-            "SIGIL_API_URL": app.config['SIGIL_API_URL'],
-            "SIGIL_UI_URL": app.config['SIGIL_UI_URL'],
-            "SIGIL_RECOVER_URL": "%s/recover.html" % app.config['SIGIL_UI_URL']
+            "SIGIL_BASE_URL": public_sigil_url,
+            "SIGIL_API_URL": "%s%s" % (public_sigil_url, api_extention),
+            "SIGIL_UI_URL": "%s%s" % (public_sigil_url, ui_extention),
+            "SIGIL_RECOVER_URL": "%s%s/recover.html" % (public_sigil_url,
+                                                        ui_extention)
             }
 
     conf_location = os.path.join(PROJECT_DIR, "ui", "js", "haruba.config.js")
