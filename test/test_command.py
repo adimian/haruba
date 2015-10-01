@@ -147,7 +147,7 @@ def test_wrong_input_list(authenticated_client):
                               " 'type' and 'from' keys, not list"))
 
 
-def test_wrong_path(authenticated_client):
+def test_wrong_to_path(authenticated_client):
     ac = authenticated_client
     command = {'commands': [{'type': 'cut',
                              'from': ["/test_zone/folder2/folder2-file1"],
@@ -157,6 +157,18 @@ def test_wrong_path(authenticated_client):
                 content_type='application/json')
     r.status_code = 400
     is_in_data(r, 'message', "does not exist")
+
+
+def test_wrong_from_path(authenticated_client):
+    ac = authenticated_client
+    command = {'commands': [{'type': 'cut',
+                             'from': ["/test_zone/folder2/does_not_exist"],
+                             'to': "/test_zone/folder1"}]}
+    content = json.dumps(command)
+    r = ac.post("/command/test_zone/folder1", data=content,
+                content_type='application/json')
+    r.status_code = 400
+    is_in_data(r, 'message', "Path does not exist")
 
 
 def test_to_path_is_file(authenticated_client):
@@ -219,5 +231,52 @@ def test_unzip_wrong_file(authenticated_client):
     content = json.dumps(command)
     r = ac.post("/command/test_zone/file", data=content,
                 content_type='application/json')
-    r.status_code = 400
+    assert r.status_code == 400
     is_in_data(r, 'message', 'is not a valid zipfile')
+
+
+def test_cut_command_without_from(authenticated_client):
+    ac = authenticated_client
+    command = {'commands': [{'type': 'cut'}]}
+    content = json.dumps(command)
+    r = ac.post("/command/test_zone", data=content,
+                content_type='application/json')
+    assert r.status_code == 400
+    is_in_data(r, 'message', "To copy or cut you must provide a 'from' key")
+
+
+def test_cut_to_no_read_permission_group(authenticated_client):
+    ac = authenticated_client
+    command = {'commands': [{'type': 'cut',
+                             'from': ["/folder1_zone/folder1-file"],
+                             'to': "/test_zone/folder2"}]}
+    content = json.dumps(command)
+    r = ac.post("/command/test_zone", data=content,
+                content_type='application/json')
+    assert r.status_code == 401
+    is_in_data(r, 'message', 'You are not allowed to read in zone')
+
+
+def test_cut_to_no_write_permission_group(authenticated_client):
+    ac = authenticated_client
+    command = {'commands': [{'type': 'cut',
+                             'from': ["/test_zone/folder2/folder2-file1"],
+                             'to': "/folder1_zone"}]}
+    content = json.dumps(command)
+    r = ac.post("/command/test_zone", data=content,
+                content_type='application/json')
+    assert r.status_code == 401
+    is_in_data(r, 'message', 'You are not allowed to write in zone')
+
+
+
+
+
+
+
+
+
+
+
+
+

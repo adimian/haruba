@@ -1,6 +1,7 @@
 sytnax: glob
 htmlcov*
-.ve*
+.ve/*
+.vagrant/*
 .coverage
 Vagrantfile
 .project

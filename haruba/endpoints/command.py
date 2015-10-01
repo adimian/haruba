@@ -3,8 +3,10 @@ import json
 import shutil
 from flask import abort, request
 from flask_restful import reqparse
+from flask_principal import Permission
 from haruba.endpoints import ProtectedWriteResource
 from haruba.utils import success, unzip, get_group_root, prep_json
+from ..permissions import ZONE_CONTEXT, READ_PERMISSION, WRITE_PERMISSION
 
 
 def get_path_from_group_url(url):
@@ -13,7 +15,7 @@ def get_path_from_group_url(url):
     split = url.split("/")
     group = split[0]
     path = split[1:]
-    return os.path.join(get_group_root(group), *path)
+    return os.path.join(get_group_root(group), *path), group
 
 
 def construct_available_path(filepath_from, destination_folder):
@@ -29,6 +31,18 @@ def construct_available_path(filepath_from, destination_folder):
             filepath_to = fnn
         return filepath_to
     abort(400, "Path does not exist")
+
+
+def can_read(group):
+    permission = Permission((ZONE_CONTEXT, READ_PERMISSION, group))
+    if not permission.can():
+        abort(401, "You are not allowed to read in zone '%s'" % group)
+
+
+def can_write(group):
+    permission = Permission((ZONE_CONTEXT, WRITE_PERMISSION, group))
+    if not permission.can():
+        abort(401, "You are not allowed to write in zone '%s'" % group)
 
 
 class Command(ProtectedWriteResource):
@@ -81,12 +95,23 @@ class Command(ProtectedWriteResource):
                 abort(400, "%s, not string" % msg)
         if not isinstance(command, dict):
             abort(400, "%s, not %s" % (msg, type(command).__name__))
+
         if command.get('to'):
             original_path = command['to']
-            command['to'] = get_path_from_group_url(command['to'])
+            command['to'], group = get_path_from_group_url(command['to'])
+            # check if we can write to this group
+            can_write(group)
         else:
+            # no need to check if we can write.
+            # ProtectedView has already done this
             original_path = request.path
             command['to'] = full_path
+
+        if command.get('from'):
+            for copy_file in command['from']:
+                _, group = get_path_from_group_url(copy_file)
+                can_read(group)
+
         if not os.path.exists(command['to']):
             abort(400, "%s does not exist" % original_path)
         return command
@@ -94,10 +119,15 @@ class Command(ProtectedWriteResource):
     def perpare_copy_cut(self, command, func):
         destination_folder = command['to']
         if not os.path.isdir(destination_folder):
-            abort(400, "%s must be a directory" % destination_folder)
+            abort(400, "%s must be a directory" % request.path)
+
+        print("check from")
+        if not command.get('from'):
+            abort(400, "To copy or cut you must provide a 'from' key")
+        print("checked from")
 
         for copy_file in command['from']:
-            filepath_from = get_path_from_group_url(copy_file)
+            filepath_from, _ = get_path_from_group_url(copy_file)
             filepath_to = construct_available_path(filepath_from,
                                                    destination_folder)
             func(filepath_from, filepath_to)
