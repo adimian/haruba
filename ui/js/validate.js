@@ -15,7 +15,7 @@ var LoginAccountApplication = function() {
     self.error_message = ko.observable();
 
     self.send_sms = function() {
-    	if(!username){
+    	if(!self.user_account.username()){
     		self.error_message("You must provide a username to be able to send and sms")
     	}
     	
