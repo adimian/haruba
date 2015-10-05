@@ -36,8 +36,7 @@
 	   		<div class="commands">
 			    <div class="input-group search-bar">
 				  <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
-				  <input id="searchbar" type="text" class="form-control" placeholder="Search..." aria-describedby="basic-addon1" data-bind="value: $root.query, valueUpdate: 'keyup',
-				  																											                event: {focus: $root.init_search}">
+				  <input id="searchbar" type="text" class="form-control" placeholder="Search..." aria-describedby="basic-addon1" data-bind="value: $root.query, valueUpdate: 'keyup'">
 				</div>
 	   			<div class="dropdown" data-bind="with: $root.options">
 				  <div id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -63,7 +62,7 @@
 	   		  <div class="header-item width-10" data-sortkey="size" data-bind="click: $root.sort_items">Size</div>
 	   		  <div class="header-item width-15" data-sortkey="modif_date" data-bind="click: $root.sort_items">Modified</div>
 	   		</div>
-	   		<div id="folder-content" data-bind="with: folder">
+	   		<div id="folder-content" data-bind="with: folder_display">
 	   		  <div data-bind="foreach: $data">
 		   		<div class="list-row" data-bind="css: { folder: is_dir,
 		   												selected_item: ($root.selected_items.indexOf($data) != -1) },

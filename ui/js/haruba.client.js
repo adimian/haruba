@@ -14,7 +14,7 @@ var show_error = function(xhr, ajaxOptions, thrownError){
 		return;
 	}
 	error_message = JSON.parse(xhr.responseText)['message']
-	if(xhr.status == "401" && error_message == "token has expired"){
+	if(xhr.status == "401"){
 		hclient.am_i_logged_in(function(){})
 	}else{		
 		HDialog("An error occured", error_message, function(){})
@@ -111,9 +111,9 @@ HFolder.prototype.content = function(group, path, success_func){
 	args = {
 		url: this.get_url("/files", group, path),
 		success_func: function(data, text, xrh){
+			console.log("got the stuff")
 			success_func(data);
 			zvm.selected_items([]);
-			console.log(data);
 		}
 	}
 	get(args);
@@ -170,7 +170,6 @@ HZone.prototype.myzones = function(success_func){
 		url: this.get_url("/myzones"),
 		success_func: function(data, text, xrh){
 			success_func(data)
-			console.log(data);
 		},
 	};
 	get(args);

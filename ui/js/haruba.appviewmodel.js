@@ -35,8 +35,22 @@ OptionAction.prototype.can_show = function(has_read, has_write, item){
 
 function ZoneViewModel(){
 	var self = this;
+	self.query = ko.observable('');
 	self.zones = ko.observable();
 	self.folder = ko.observableArray();
+	self.folder_display = ko.computed(function() {
+        var searchbar = self.query();
+        if (!searchbar) {
+            return this.folder();
+        } else {
+            return ko.utils.arrayFilter(this.folder(), function(item) {
+                searchbar = searchbar.toLowerCase();
+                if(item.name.toLowerCase().indexOf(searchbar) > -1){
+                	return true;
+                }
+            });
+        }
+    }, this).extend({ throttle: 750 });
 	self.complete_folder = ko.observableArray();
 	self.selected_zone = ko.observable();
 	self.selected_zone_name = ko.observable();
@@ -46,7 +60,6 @@ function ZoneViewModel(){
 	self.copy_candidates = ko.observableArray();
 	self.cut_paths = ko.observableArray();
 	self.copy_paths = ko.observableArray();
-	self.query = ko.observable('');
 	self.has_read = ko.computed(function(){
 		if(this.selected_zone()){			
 			return this.selected_zone().access.indexOf('read')>-1;
@@ -80,11 +93,8 @@ function ZoneViewModel(){
 	self.rename = rename;
 	self.create_folder = create_folder;
 	self.unzip = unzip;
-	self.search = search;
-	self.query.subscribe(self.search);
 	self.load_admin = function(){$.get("/admin.html", function(data){ $("body").html(data);})};
 	self.load_profile = function(){$.get("/profile.html", function(data){ $("body").html(data);})};
-	self.init_search = function(){hclient.folder.content(current_zone, current_path, zvm.complete_folder)};
 	
 	self.options = ko.observableArray([new OptionAction(self.option_upload, 'glyphicon-upload', ' Upload', "", false, true, true),
 	                                   new OptionAction(self.create_folder, 'glyphicon-plus-sign', ' New Folder', "", true, true, true),
@@ -237,9 +247,6 @@ var option_upload = function(){
 }
 
 var rename = function(item, evt){
-	console.log(item)
-	console.log(evt)
-	console.log(evt.target)
 	var fader = $("<div class='fader'></div>")
 	var input = $("<input type='text' class='form-control fader-input' value='"+item.name+"'></input>")
 	var row = $(evt.target).parent().parent();
@@ -290,17 +297,6 @@ var unzip = function(item, evt){
 		console.log($('.menu').find('div:contains("'+current_zone+'")'))
 		$('.menu').find('div:contains("'+current_zone+'")').trigger('click');
 	})
-}
-
-var search = function(search_str){
-	zvm.folder.removeAll();
-	var to_search_array = zvm.complete_folder()
-	for(i=0;to_search_array.length>i;i++){
-		console.log()
-		if(to_search_array[i].name.search(search_str)>-1){
-			zvm.folder.push(to_search_array[i])
-		}
-	}
 }
 
 
