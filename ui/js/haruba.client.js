@@ -169,11 +169,6 @@ HClient.prototype.am_i_logged_in = function(success_func){
 		if(data['authenticated'] == false){
 			$.get("/login.html", function(data){
 				$("body").append(data);
-				$("#password").keypress(function(e) {
-				    if(e.which == 13) {
-				        $('#login-button').trigger('click')
-				    }
-				});
 			});
 		}else{
 			success_func(data)

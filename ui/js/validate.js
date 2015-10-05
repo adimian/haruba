@@ -53,4 +53,9 @@ var init_login = function() {
     var app = new LoginAccountApplication();
     ko.applyBindings(app, $("#login-panel")[0]);
     window.login_app = app
+    $("#password").keypress(function(e) {
+	    if(e.which == 13) {
+	        $('#login-button').trigger('click')
+	    }
+	});
 };
