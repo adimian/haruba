@@ -16,6 +16,7 @@ body{
 	width: 200px;
 	background-color: #EEE;
 	float: left;
+    overflow: scroll;
 }
 
 .menu-item{

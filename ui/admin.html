@@ -4,7 +4,8 @@
     <div class="header-menu-item" data-bind="click: $root.logout">
       <span class="glyphicon glyphicon glyphicon-off"></span> Logout
     </div>
-    <div class="header-menu-item" data-bind="click: $root.load_admin">
+    <div class="header-menu-item" data-bind="click: $root.load_admin,
+    										 visible: $root.current_user.admin()">
   	  <span class="glyphicon glyphicon glyphicon-cog"></span> Admin
   	</div>
     <div class="header-menu-item" data-bind="click: $root.load_profile">

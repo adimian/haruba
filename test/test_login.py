@@ -55,11 +55,11 @@ def test_login(client):
     assert rv.status_code == 403
 
     rv = client.get('/login')
-    assert json.loads(rv.data.decode('utf-8'))
+    assert json.loads(rv.data.decode('utf-8'))['authenticated']
 
     rv = client.get('/logout')
     rv = client.get('/login')
-    assert not json.loads(rv.data.decode('utf-8'))
+    assert not json.loads(rv.data.decode('utf-8'))['authenticated']
 
 
 @patch("sigil_client.SigilClient.login", totp)

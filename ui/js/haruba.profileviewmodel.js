@@ -56,6 +56,7 @@ ListItem.prototype.value = function(){
 function ProfileViewModel(){
 	var self = this;
 	self.user_details = ko.observableArray();
+	self.current_user = new CurrentUser()
 	
 	//behaviour
 	self.load_admin = function(){$.get("/admin.html", function(data){ $("body").html(data);})};

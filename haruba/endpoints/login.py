@@ -6,6 +6,7 @@ from flask_restful import Resource, reqparse
 from flask_login import login_user, current_user, logout_user
 from flask_principal import Identity, identity_changed, abort
 from ..utils import WrappedSigilClient, get_sigil_client
+from ..permissions import is_admin
 
 login_manager = LoginManager()
 
@@ -66,7 +67,8 @@ def load_user(login):
 class Login(Resource):
     def get(self):
         # for the JS lib to know if the user is logged in or not
-        return current_user.is_authenticated()
+        return {"authenticated": current_user.is_authenticated(),
+                "admin": is_admin()}
 
     def post(self):
         parser = reqparse.RequestParser()

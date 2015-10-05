@@ -18,6 +18,7 @@ function AdminViewModel(){
 	self.has_changed = ko.observable(false);
 	self.creating_zone = ko.observable(false);
 	self.pending_permissions = ko.observableArray();
+	self.current_user = new CurrentUser()
 	
 	//behaviour
 	self.logout = function(){hclient.logout()};

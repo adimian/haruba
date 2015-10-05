@@ -17,6 +17,14 @@ READ_PERMISSION = 'read'
 WRITE_PERMISSION = 'write'
 
 
+def is_admin():
+    need = tuple((ADMIN_CONTEXT, WRITE_PERMISSION))
+    permission = Permission(need)
+    if permission.can():
+        return True
+    return False
+
+
 @login_required
 def process_request(func, args, kwargs, context, permission):
     group = kwargs.get('group', None)

@@ -1,3 +1,13 @@
+var CurrentUser = function(){
+	self = this
+	self.authenticated = ko.observable(false);
+	self.admin = ko.observable(false);
+	hclient.am_i_logged_in(function(data){
+		self.authenticated(data['authenticated'])
+		self.admin(data['admin'])
+	})
+}
+
 var show_error = function(xhr, ajaxOptions, thrownError){
 	if(xhr.status == "500"){
 		HDialog("An error occured", xhr.responseText, function(){})
@@ -156,7 +166,7 @@ function HClient(){}
 HClient.prototype = new HRequest()
 HClient.prototype.am_i_logged_in = function(success_func){
 	get(this.get_url("/login"), function(data, text, xrh){
-		if(data == false){
+		if(data['authenticated'] == false){
 			$.get("/login.html", function(data){
 				$("body").append(data);
 				$("#password").keypress(function(e) {
@@ -166,7 +176,7 @@ HClient.prototype.am_i_logged_in = function(success_func){
 				});
 			});
 		}else{
-			success_func()
+			success_func(data)
 		}
 	});
 }

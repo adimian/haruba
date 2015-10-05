@@ -60,6 +60,7 @@ function ZoneViewModel(){
 		return false;
 	}, this);
 	hclient.zone.myzones(self.zones)
+	self.current_user = new CurrentUser()
 	
 	//behaviour
 	self.load_zone = load_zone;

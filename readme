@@ -46,7 +46,7 @@ GET: will tell you if you are loggin in or not
 
 example:
 url = "%s/login" % base_url
-session.request('get', base_url)
+session.request('get', url)
 
 POST: making a post request will allow you to log in with either your login/password combination or your api key.
 - params:
@@ -59,8 +59,8 @@ POST: making a post request will allow you to log in with either your login/pass
 
 example:
 url = "%s/login" % base_url
-session.request('post', base_url, data={'login': 'myuser',
-										'password': 'mypassword'})
+session.request('post', url, data={'login': 'myuser',
+								   'password': 'mypassword'})
 
 
 
