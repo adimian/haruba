@@ -21,38 +21,43 @@ var show_error = function(xhr, ajaxOptions, thrownError){
 	}
 };
 
-var request = function(type, url, form_data, success_func, has_json, error_func){
-	if(!error_func){
-		error_func = show_error
-	}
+var request = function(args){
+	args = $.extend({type: 'get',
+					 url: '',
+					 data: [],
+					 success_func: function(data){console.log(data)},
+					 error_func: show_error,
+					 has_json: false}, args);
+
 	data = {
-	    url: url,
-	    type: type,
-	    data: form_data,
+	    url: args['url'],
+	    type: args['type'],
+	    data: args['data'],
 	    xhrFields: {
 	        withCredentials: true
 	    },
-	    success: success_func,
-	    error: error_func,
+	    success: args['success_func'],
+	    error: args['error_func'],
 	    cache: false,
 	};
-	if(has_json){
+	if(args['has_json']){
 		data.contentType = "application/json";
 	};
-	console.log(data)
 	$.ajax(data);
 };
 
-var post = function(url, data, success_func, has_json, error_func){
-	console.log(has_json)
-	console.log(error_func)
-	request('post', url, data, success_func, has_json, error_func)};
-var put = function(url, data, success_func, has_json, error_func){
-	request('put', url, data, success_func, has_json, error_func)};
-var del = function(url, data, success_func, has_json, error_func){
-	request('delete', url, data, success_func, has_json, error_func)};
-var get = function(url, success_func, error_func){
-	request('get', url, [], success_func, false, error_func)};
+var post = function(args){
+	args.type = 'post'
+	request(args)};
+var put = function(args){
+	args.type = 'put'
+	request(args)};
+var del = function(args){
+	args.type = 'delete'
+	request(args)};
+var get = function(args){
+	args.type = 'get'
+	request(args)};
 
 function HRequest(){
 	this.service_url = HARUBA_API_URL;
@@ -74,49 +79,74 @@ HRequest.prototype.get_url = function(base, group, path){
 function HPermissions(){};
 HPermissions.prototype = new HRequest();
 HPermissions.prototype.get_users = function(success_func){
-	get(this.get_url("/permissions"), function(data, text, xrh){
-		success_func(data)
-	});
+	args = {
+		url: this.get_url("/permissions"), 
+		success_func: function(data, text, xrh){
+				 	  	success_func(data)
+			   		  }
+	};
+	get(args);
 };
 HPermissions.prototype.grant = function(permissions){
-	data = JSON.stringify({'permissions': permissions});
-	post(this.get_url("/permissions"), data, function(data, text, xrh){
-		console.log(data);
-	}, true);
+	args = {
+		url: this.get_url("/permissions"),
+		data: JSON.stringify({'permissions': permissions}),
+		has_json: true
+	};
+	post(args);
 };
 HPermissions.prototype.withdraw = function(permissions){
-	data = JSON.stringify({'permissions': permissions});
-	del(this.get_url("/permissions"), data, function(data, text, xrh){
-		console.log(data);
-	}, true);
+	args = {
+		url: this.get_url("/permissions"),
+		data: JSON.stringify({'permissions': permissions}),
+		has_json: true
+	};
+	del(args);
 };
 
 // -----------------------FOLDER-----------------------
 function HFolder(){};
 HFolder.prototype = new HRequest();
 HFolder.prototype.content = function(group, path, success_func){
-	get(this.get_url("/files", group, path), function(data, text, xrh){
-		success_func(data);
-		zvm.selected_items([]);
-		console.log(data);
-	});
+	args = {
+		url: this.get_url("/files", group, path),
+		success_func: function(data, text, xrh){
+			success_func(data);
+			zvm.selected_items([]);
+			console.log(data);
+		}
+	}
+	get(args);
 };
-HFolder.prototype.create = function(group, path, success_func){		
-	post(this.get_url("/files", group, path), [], function(data, text, xrh){
-		success_func();
-	});
+HFolder.prototype.create = function(group, path, success_func){	
+	args = {
+		url: this.get_url("/files", group, path),
+		success_func: function(data, text, xrh){
+			success_func();
+		},
+	}
+	post(args);
 };
 HFolder.prototype.rename = function(group, path, rename_to, success_func){		
-	data = {'rename_to': rename_to};
-	put(this.get_url("/files", group, path), data, function(data, text, xrh){
-		success_func();
-	});
+	args = {
+			url: this.get_url("/files", group, path),
+			data: {'rename_to': rename_to},
+			success_func: function(data, text, xrh){
+				success_func();
+			},
+		};
+	put(args);
 };
 HFolder.prototype.remove = function(group, path, files, success_func){
-	data = JSON.stringify({'files_to_delete': files});
-	del(this.get_url("/files", group, path), data, function(data, text, xrh){
-		success_func()
-	}, true);
+	args = {
+		url: this.get_url("/files", group, path),
+		data: JSON.stringify({'files_to_delete': files}),
+		success_func: function(data, text, xrh){
+			success_func();
+		},
+		has_json: true,
+	};
+	del(args);
 };
 
 //-----------------------DOWNLOAD-----------------------
@@ -135,29 +165,44 @@ HDownload.prototype.multi = function(group, path, files){
 //-----------------------ZONES-----------------------
 function HZone(){};
 HZone.prototype = new HRequest();
-HZone.prototype.myzones = function(success_func){		
-	get(this.get_url("/myzones"), function(data, text, xrh){
-		success_func(data)
-		console.log(data);
-	});
+HZone.prototype.myzones = function(success_func){
+	args = {
+		url: this.get_url("/myzones"),
+		success_func: function(data, text, xrh){
+			success_func(data)
+			console.log(data);
+		},
+	};
+	get(args);
 };
-HZone.prototype.zones = function(success_func){		
-	get(this.get_url("/zone"), function(data, text, xrh){
-		success_func(data);
-	});
+HZone.prototype.zones = function(success_func){
+	args = {
+		url: this.get_url("/zone"),
+		success_func: function(data, text, xrh){
+			success_func(data);
+		}
+	}
+	get(args);
 };
 HZone.prototype.create = function(zones, success_func){
-	data = JSON.stringify({'zones': zones})
-	post(this.get_url("/zone"), data, function(data, text, xrh){
-		success_func()
-		console.log(data);
-	}, true);
+	args = {
+		url: this.get_url("/zone"),
+		data: JSON.stringify({'zones': zones}),
+		success_func: function(data, text, xrh){
+			success_func()
+			console.log(data);
+		},
+		has_json: true,
+	}
+	post(args);
 };
 HZone.prototype.update = function(zones){		
-	data = JSON.stringify({'zones': zones})
-	put(this.get_url("/zone"), data, function(data, text, xrh){
-		console.log(data);
-	}, true);
+	args = {
+		url: this.get_url("/zone"),
+		data:  JSON.stringify({'zones': zones}),
+		has_json: true, 
+	}
+	put(args);
 };
 
 
@@ -165,15 +210,19 @@ HZone.prototype.update = function(zones){
 function HClient(){}
 HClient.prototype = new HRequest()
 HClient.prototype.am_i_logged_in = function(success_func){
-	get(this.get_url("/login"), function(data, text, xrh){
-		if(data['authenticated'] == false){
-			$.get("/login.html", function(data){
-				$("body").append(data);
-			});
-		}else{
-			success_func(data)
+	args = {
+		url: this.get_url("/login"),
+		success_func:  function(data, text, xrh){
+			if(data['authenticated'] == false){
+				$.get("/login.html", function(data){
+					$("body").append(data);
+				});
+			}else{
+				success_func(data)
+			}
 		}
-	});
+	};
+	get(args);
 }
 HClient.prototype.login = function(username, password, totp){
 	data = {"login": username,
@@ -181,37 +230,51 @@ HClient.prototype.login = function(username, password, totp){
 			"totp": totp};
 	
 	window.login_app.error_message("")
-	post(this.get_url("/login"), data, function(data, text, xrh){
-		if(!initialised){	
-			$.get("/app.html", function(data){
-				initialised = true;
-				$("body").html(data);
-			});
-		}else{
-			$("#login-fader").remove();
-		}
-	}, false, function(xhr, ajaxOptions, thrownError){
-		console.log(xhr.responseText)
-		if(xhr.status == "500"){
-			HDialog("An error occured", xhr.responseText, function(){})
-			return;
-		}
-		error_message = JSON.parse(xhr.responseText)['message']
-		window.login_app.error_message(error_message)
-	});
+	
+	args = {
+		url: this.get_url("/login"),
+		data: data,
+		success_func: function(data, text, xrh){
+			if(!initialised){	
+				$.get("/app.html", function(data){
+					initialised = true;
+					$("body").html(data);
+				});
+			}else{
+				$("#login-fader").remove();
+			}
+		},
+		error_func: function(xhr, ajaxOptions, thrownError){
+			console.log(xhr.responseText)
+			if(xhr.status == "500"){
+				HDialog("An error occured", xhr.responseText, function(){})
+				return;
+			}
+			error_message = JSON.parse(xhr.responseText)['message']
+			window.login_app.error_message(error_message)
+		},
+	}
+	post(args);
 }
 HClient.prototype.logout = function(){
-	get(this.get_url("/logout"), function(data, text, xrh){
-		$.get("/login.html", function(data){
-			$("body").html(data);
-		});
-	});
+	args = {
+		url: this.get_url("/logout"),
+		success_func: function(data, text, xrh){
+			$.get("/login.html", function(data){
+				$("body").append(data);
+			});
+		}
+	}
+	get(args);
 }
 HClient.prototype.user_details = function(success_func){
-	get(this.get_url("/user/details"), function(data, text, xrh){
-		console.log(data)
-		success_func(data)
-	});
+	args = {
+		url: this.get_url("/user/details"),
+		success_func: function(data, text, xrh){
+			success_func(data)
+		}
+	}
+	get(args);
 }
 HClient.prototype.upload = function(group, path, files, extra_data, progress_func, setui_func, success_func){
 	for (var i = 0; i < files.length; i++)
@@ -246,11 +309,16 @@ HClient.prototype.upload = function(group, path, files, extra_data, progress_fun
 	}
 }
 HClient.prototype.command = function(group, path, data, success_func){
-	data = JSON.stringify({'commands': data})
-	post(this.get_url("/command", group, path), data, function(data, text, xrh){
-		console.log("executing func")
-		success_func();
-	}, true)
+	args = {
+		url: this.get_url("/command", group, path),
+		data: JSON.stringify({'commands': data}),
+		success_func:function(data, text, xrh){
+			console.log("executing func")
+			success_func();
+		},
+		has_json: true,
+	}
+	post(args)
 },
 HClient.prototype.permissions = new HPermissions()	
 HClient.prototype.folder = new HFolder()
@@ -266,17 +334,3 @@ hclient.am_i_logged_in(function(){
 		init_dragdrop();
 	});
 })
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
