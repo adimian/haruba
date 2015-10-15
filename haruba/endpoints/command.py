@@ -1,11 +1,12 @@
 import os
 import json
 import shutil
-from flask import abort, request
+from flask import abort, request, current_app
 from flask_restful import reqparse
 from flask_principal import Permission
-from haruba.endpoints import ProtectedWriteResource
-from haruba.utils import success, unzip, get_group_root, prep_json
+from ..endpoints import ProtectedWriteResource
+from ..utils import success, unzip, get_group_root, prep_json
+from ..signals import new_file_or_folder
 from ..permissions import ZONE_CONTEXT, READ_PERMISSION, WRITE_PERMISSION
 
 
@@ -138,6 +139,8 @@ class Command(ProtectedWriteResource):
             shutil.copytree(filepath_from, filepath_to)
         else:
             shutil.copy(filepath_from, filepath_to)
+        new_file_or_folder.send(current_app._get_current_object(),
+                                path=filepath_to)
 
     def unzip(self, command):
         path = command['to']

@@ -7,6 +7,7 @@ from flask_restful import Api
 from flask_alembic import Alembic
 from raven.contrib.flask import Sentry
 
+from .plugins import PluginManager
 from .endpoints.permission import Permissions
 from .endpoints.login import Login, login_manager, Logout, UserDetails
 from .endpoints.folder import Folder
@@ -30,6 +31,7 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 alembic = Alembic(app)
+plugin_manager = PluginManager(app.config['HARUBA_PLUGIN_FOLDER'])
 
 sentry = None
 if app.config['SENTRY_DSN']:
@@ -71,3 +73,10 @@ def setup_endpoints():
     api.add_resource(Zones, '/zone')
     api.add_resource(Permissions, '/permissions')
     logger.info('endpoints setup done')
+
+
+def load_plugins():
+    def get_active_plugins():
+        return plugin_manager.available_plugins
+    plugin_manager.activate_plugins(get_active_plugins())
+

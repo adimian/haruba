@@ -7,6 +7,7 @@ from sigil_client import SigilClient
 from functools import wraps
 
 from .database import db, Zone
+from .signals import new_file_or_folder
 
 
 FILE_TYPE = 'file'
@@ -81,5 +82,7 @@ def unzip(zip_dir, path, delete_after=False):
     if os.path.exists(zip_dir):
         with zipfile.ZipFile(zip_dir) as zf:
             zf.extractall(path)
+            new_file_or_folder.send(current_app._get_current_object(),
+                                    path=path)
         if delete_after:
             os.remove(zip_dir)

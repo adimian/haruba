@@ -2,10 +2,11 @@ import os
 import zipfile
 import tempfile
 from flask_restful import reqparse, inputs
-from flask import abort, request, send_file
+from flask import abort, request, send_file, current_app
 from werkzeug.datastructures import FileStorage
 from haruba.utils import success, unzip
 from haruba.endpoints import ProtectedReadResource, ProtectedWriteResource
+from ..signals import new_file_or_folder
 
 
 def make_zip(path, root_folder):
@@ -61,6 +62,8 @@ class Upload(ProtectedWriteResource):
 
             with open(file_path, "wb+") as fh:
                 fh.write(filestorage.read())
+            new_file_or_folder.send(current_app._get_current_object(),
+                                    path=file_path)
 
             if args['unpack_zip'] and file_name.endswith(".zip"):
                 unzip(file_path, full_path, args['delete_zip_after_unpack'])

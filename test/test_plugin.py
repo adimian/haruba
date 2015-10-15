@@ -20,3 +20,11 @@ def test_broken_plugin_manager():
     with pytest.raises(ImportError) as excinfo:
         pm.load_plugin('broken_plugin')
     assert str(excinfo.value) == "Plug-in must have an 'init_plugin' method"
+
+
+def test_nonexisting_plugin_manager():
+    plugin_dir = os.path.join(ROOT_DIR, "data", "mock_plugin")
+    pm = PluginManager(plugin_dir)
+    with pytest.raises(ImportError) as excinfo:
+        pm.load_plugin('doesnt_exist')
+    assert str(excinfo.value) == "No module named doesnt_exist"

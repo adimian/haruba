@@ -3,11 +3,12 @@ from flask_script import Manager, Server, prompt_pass, prompt
 from sigil_client import SigilClient
 from flask_alembic.cli.script import manager as alembic_manager
 
-from haruba.api import app, setup_endpoints, alembic
+from haruba.api import app, setup_endpoints, alembic, load_plugins
 import logging
 logger = logging.getLogger('haruba.server')
 
 setup_endpoints()
+load_plugins()
 
 manager = Manager(app)
 manager.add_command("runserver", Server(host=app.config['HOST'],

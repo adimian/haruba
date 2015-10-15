@@ -2,12 +2,22 @@ import imp
 import importlib
 import pkgutil
 import sys
+from ..api import logger
+
+
+def is_plugin_list(candidate):
+    if not isinstance(candidate, list):
+        raise("active plug-ins must be of type: list")
 
 
 class PluginManager(object):
-    def __init__(self, plugin_dir):
+    def __init__(self, plugin_dir, active_plugins=None):
         self._available_plugins = []
         self.plugin_dir = plugin_dir
+        self.active_plugins = []
+        if active_plugins:
+            is_plugin_list(active_plugins)
+            self.active_plugins.extend(active_plugins)
 
     @property
     def available_plugins(self):
@@ -26,3 +36,9 @@ class PluginManager(object):
                 raise ImportError("Plug-in must have an 'init_plugin' method")
             return module
         raise ImportError("No module named %s" % plugin)
+
+    def activate_plugins(self, plugins):
+        if isinstance(plugins, str):
+            plugins = [plugins]
+        is_plugin_list(plugins)
+        self.active_plugins.extend(plugins)
