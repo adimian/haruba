@@ -111,7 +111,6 @@ HFolder.prototype.content = function(group, path, success_func){
 	args = {
 		url: this.get_url("/files", group, path),
 		success_func: function(data, text, xrh){
-			console.log("got the stuff")
 			success_func(data);
 			zvm.selected_items([]);
 		}
