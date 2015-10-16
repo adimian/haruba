@@ -36,7 +36,6 @@ plugin_folder = app.config['HARUBA_PLUGIN_FOLDER']
 if not plugin_folder:
     project_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
     plugin_folder = os.path.join(project_dir, "plugins")
-logger.info("plugin dir is %s" % plugin_folder)
 plugin_manager = PluginManager(plugin_folder)
 
 sentry = None
@@ -82,10 +81,13 @@ def setup_endpoints():
 
 
 def load_plugins():
-    if not app.config['HARUBA_ENABLE_PLUGINS']:
-        return
+    if app.config['HARUBA_ENABLE_PLUGINS']:
+        logger.info("Plug-ins enabled")
+        logger.info("Plugin dir is %s" % plugin_folder)
 
-    def get_active_plugins():
-        return plugin_manager.available_plugins
-    plugin_manager.activate_plugins(get_active_plugins())
-    plugin_manager.load_active_plugins()
+        def get_active_plugins():
+            return plugin_manager.available_plugins
+        plugin_manager.activate_plugins(get_active_plugins())
+        plugin_manager.load_active_plugins()
+    else:
+        logger.info("Plug-ins disabled")
