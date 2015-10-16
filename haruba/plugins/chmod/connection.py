@@ -4,6 +4,8 @@ import time
 import json
 from . import logger
 
+MAX_RETRIES = 8
+
 
 class Base(object):
     def __init__(self, config):
@@ -13,7 +15,7 @@ class Base(object):
         self.queue_name = config['CHMOD_QUEUE_NAME']
         self.slots = config['CHMOD_SLOTS']
 
-    def connect(self, timeout):
+    def connect(self):
         credentials = pika.PlainCredentials(
             self.username,
             self.password,
@@ -22,25 +24,21 @@ class Base(object):
             host=self.hostname,
             credentials=credentials,
         )
-        try:
-            connection = pika.BlockingConnection(parameters)
-        except pika.exceptions.AMQPConnectionError as error:
-            logger.error("Could not connect. Retrying in %ss" % timeout)
-            time.sleep(timeout)
-            return False, error
-        return True, connection
+        return pika.BlockingConnection(parameters)
 
     def get_connection(self):
-        timeout = 1
-        while timeout <= 8:
-            connected, connection = self.connect(timeout)
-            if connected:
-                break
-            else:
-                timeout = timeout * 2
-
-        if not connected:
-            raise connection
+        retry = 1
+        connection = None
+        while retry <= MAX_RETRIES:
+            timeout = retry ** 2
+            try:
+                connection = self.connect()
+            except pika.exceptions.AMQPConnectionError:
+                time.sleep(timeout)
+                retry += 1
+                if retry > MAX_RETRIES:
+                    raise
+                logger.error("Could not connect. Retrying in %ss" % timeout)
         return connection
 
 

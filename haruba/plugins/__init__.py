@@ -4,19 +4,14 @@ import pkgutil
 import sys
 
 
-def is_plugin_list(candidate):
-    if not isinstance(candidate, list):
-        raise Exception("active plug-ins must be of type: list")
-
-
 class PluginManager(object):
     def __init__(self, plugin_dir, active_plugins=None):
         self._available_plugins = []
         self.plugin_dir = plugin_dir
         self.active_plugins = []
         if active_plugins:
-            is_plugin_list(active_plugins)
-            self.active_plugins.extend(active_plugins)
+            for plugin in active_plugins:
+                self.activate_plugin(plugin)
 
     @property
     def available_plugins(self):
@@ -36,12 +31,12 @@ class PluginManager(object):
             return module
         raise ImportError("No module named %s" % plugin)
 
-    def activate_plugins(self, plugins):
-        if isinstance(plugins, str):
-            plugins = [plugins]
-        is_plugin_list(plugins)
-        self.active_plugins.extend(plugins)
+    def activate_plugin(self, plugin):
+        if isinstance(plugin, (list, tuple)):
+            for sub in plugin:
+                self.activate_plugin(sub)
+        self.active_plugins.append(plugin)
 
-    def load_active_plugins(self):
+    def start_active_plugins(self):
         for plugin in self.active_plugins:
             self.load_plugin(plugin).init_plugin()

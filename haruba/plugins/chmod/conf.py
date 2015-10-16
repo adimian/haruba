@@ -17,8 +17,8 @@ def configure(config):
 
     set_default('CHMOD_OWNER', 'root')
     set_default('CHMOD_GROUP', 'staff')
-    set_default('CHMOD_FILE_PERMISSIONS', 0o660)
-    set_default('CHMOD_FOLDER_PERMISSIONS', 0o770)
+    set_default('CHMOD_FILE_PERMISSIONS', '0660')
+    set_default('CHMOD_FOLDER_PERMISSIONS', '0770')
 
     set_default('CHMOD_AMQP_USER', 'guest')
     set_default('CHMOD_AMQP_PASSWORD', 'guest')

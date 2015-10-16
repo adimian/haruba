@@ -87,7 +87,10 @@ def load_plugins():
 
         def get_active_plugins():
             return plugin_manager.available_plugins
-        plugin_manager.activate_plugins(get_active_plugins())
-        plugin_manager.load_active_plugins()
+        for plugin in get_active_plugins():
+            logger.info("loading {}".format(plugin))
+            plugin_manager.activate_plugin(plugin)
+            logger.info("plugin {} loaded".format(plugin))
+        plugin_manager.start_active_plugins()
     else:
         logger.info("Plug-ins disabled")
