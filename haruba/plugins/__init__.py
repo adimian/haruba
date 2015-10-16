@@ -6,7 +6,7 @@ import sys
 
 def is_plugin_list(candidate):
     if not isinstance(candidate, list):
-        raise("active plug-ins must be of type: list")
+        raise Exception("active plug-ins must be of type: list")
 
 
 class PluginManager(object):
