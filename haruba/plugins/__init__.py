@@ -2,7 +2,6 @@ import imp
 import importlib
 import pkgutil
 import sys
-from ..api import logger
 
 
 def is_plugin_list(candidate):
@@ -42,3 +41,7 @@ class PluginManager(object):
             plugins = [plugins]
         is_plugin_list(plugins)
         self.active_plugins.extend(plugins)
+
+    def load_active_plugins(self):
+        for plugin in self.active_plugins:
+            self.load_plugin(plugin).init_plugin()

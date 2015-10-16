@@ -31,7 +31,13 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 alembic = Alembic(app)
-plugin_manager = PluginManager(app.config['HARUBA_PLUGIN_FOLDER'])
+
+plugin_folder = app.config['HARUBA_PLUGIN_FOLDER']
+if not plugin_folder:
+    project_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+    plugin_folder = os.path.join(project_dir, "plugins")
+logger.info("plugin dir is %s" % plugin_folder)
+plugin_manager = PluginManager(plugin_folder)
 
 sentry = None
 if app.config['SENTRY_DSN']:
@@ -76,7 +82,10 @@ def setup_endpoints():
 
 
 def load_plugins():
+    if not app.config['HARUBA_ENABLE_PLUGINS']:
+        return
+
     def get_active_plugins():
         return plugin_manager.available_plugins
     plugin_manager.activate_plugins(get_active_plugins())
-
+    plugin_manager.load_active_plugins()

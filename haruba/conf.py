@@ -38,4 +38,5 @@ def configure(app):
     set_default('HARUBA_SERVE_ROOT', '/tmp/haruba')
     set_default('HARUBA_ZONE_DEFAULT', 'data')
     set_default('HARUBA_PLUGIN_FOLDER', '')
+    set_default('HARUBA_ENABLE_PLUGINS', False)
     set_default('PERMANENT_SESSION_LIFETIME', 7200)

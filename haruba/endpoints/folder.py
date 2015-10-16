@@ -3,15 +3,18 @@ import shutil
 from scandir import scandir
 from datetime import datetime
 from . import ProtectedResource
-from flask import abort, request
+from flask import abort, request, current_app
 from flask_restful import reqparse
 from haruba.permissions import has_read, has_write
 from haruba.utils import get_group_root, success
+from ..signals import browsing
 
 
 def assemble_directory_contents(group, path):
     group_root = get_group_root(group)
     full_path = os.path.join(group_root, path)
+    browsing.send(current_app._get_current_object(),
+                  path=full_path)
     if not os.path.exists(full_path):
         return abort(404, 'Not Found: %s' % request.url)
 

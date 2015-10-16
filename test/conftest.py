@@ -6,10 +6,10 @@ from unittest.mock import patch
 import pytest
 
 from haruba.database import db, Zone
-from haruba.api import app, setup_endpoints
+from haruba.api import app, setup_endpoints, load_plugins
 
 setup_endpoints()
-
+load_plugins()
 
 ROOT_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 folder_structure = [{"folder1": ['folder1-file']},
