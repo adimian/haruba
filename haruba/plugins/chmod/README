@@ -1,0 +1,5 @@
+Picks up on haruba events, sends file paths to the worker.
+The worker changes the group and permissions.
+
+It's important to run the worker stand-alone and with enough rights to change
+file permissions
