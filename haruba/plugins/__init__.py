@@ -35,7 +35,8 @@ class PluginManager(object):
         if isinstance(plugin, (list, tuple)):
             for sub in plugin:
                 self.activate_plugin(sub)
-        self.active_plugins.append(plugin)
+        else:
+            self.active_plugins.append(plugin)
 
     def start_active_plugins(self):
         for plugin in self.active_plugins:
