@@ -37,6 +37,7 @@ function ZoneViewModel(){
 	var self = this;
 	self.query = ko.observable('');
 	self.zones = ko.observable();
+	self.loading = ko.observable(false);
 	self.folder = ko.observableArray();
 	self.folder_display = ko.computed(function() {
         var searchbar = self.query();
@@ -50,7 +51,7 @@ function ZoneViewModel(){
                 }
             });
         }
-    }, this).extend({ throttle: 750 });
+    }, this);
 	self.complete_folder = ko.observableArray();
 	self.selected_zone = ko.observable();
 	self.selected_zone_name = ko.observable();
@@ -109,12 +110,22 @@ function ZoneViewModel(){
 	                                       new OptionAction(self.unzip, 'glyphicon-compressed', ' Unzip', "", false, true, true),]);
 }
 
+var load_content = function(current_zone, current_path, folder){
+	zvm.loading(true)
+	zvm.folder({})
+	var success = function(data){
+		zvm.loading(false)
+		folder(data)
+	}
+	hclient.folder.content(current_zone, current_path, success)
+}
+
 var go_to_folder = function(item, evt){
 	current_path += "/" + item.name
 	zvm.breadcrumbs.push({name: item.name, 
 						  path: current_path, 
 						  components: zvm.breadcrumbs().slice()})
-	hclient.folder.content(current_zone, current_path, zvm.folder)
+	load_content(current_zone, current_path, zvm.folder);
 }
 
 var load_zone = function(item, evt){
@@ -125,7 +136,7 @@ var load_zone = function(item, evt){
 	zvm.breadcrumbs([{name: "Home", 
 		              path: current_path, 
 		              components: zvm.breadcrumbs().slice()}]);
-	hclient.folder.content(current_zone, current_path, zvm.folder);
+	load_content(current_zone, current_path, zvm.folder);
 	zvm.selected_items([])
 };
 
@@ -136,7 +147,7 @@ var go_to_breadcrumb = function(item, evt){
 	zvm.breadcrumbs.push({name: item.name, 
 						  path: current_path, 
 						  components: zvm.breadcrumbs().slice()})
-	hclient.folder.content(current_zone, current_path, zvm.folder);
+	load_content(current_zone, current_path, zvm.folder);
 	zvm.selected_items([])
 };
 
