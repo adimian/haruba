@@ -13,8 +13,8 @@ class ReceivedMessageHandler(object):
     def __init__(self, connection):
         self.connection = connection
         self.perm_gid = grp.getgrnam(config['CHMOD_GROUP']).gr_gid
-        self.folder_chmod = int(config['CHMOD_FOLDER_PERMISSIONS'], 8)
-        self.file_chmod = int(config['CHMOD_FILE_PERMISSIONS'], 8)
+        self.folder_chmod = int(str(config['CHMOD_FOLDER_PERMISSIONS']), 8)
+        self.file_chmod = int(str(config['CHMOD_FILE_PERMISSIONS']), 8)
 
     def __call__(self, ch, method, properties, body):
         try:

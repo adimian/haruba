@@ -33,6 +33,8 @@ class Base(object):
             timeout = retry ** 2
             try:
                 connection = self.connect()
+                # connected, break the while
+                break
             except pika.exceptions.AMQPConnectionError:
                 time.sleep(timeout)
                 retry += 1
