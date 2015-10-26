@@ -32,7 +32,7 @@ class ReceivedMessageHandler(object):
         if os.path.exists(path):
             try:
                 os.chown(path, -1, self.perm_gid)
-                logger.debug('chown of %s successful', path)
+                logger.info('chown of %s successful', path)
             except OSError:
                 logger.exception('unable to chown %s', path)
 
@@ -41,7 +41,7 @@ class ReceivedMessageHandler(object):
                     os.chmod(path, self.folder_chmod)
                 else:
                     os.chmod(path, self.file_chmod)
-                logger.debug('chmod of %s successful', path)
+                logger.info('chmod of %s successful', path)
             except OSError:
                 logger.exception('unable to chmod %s', path)
         else:
