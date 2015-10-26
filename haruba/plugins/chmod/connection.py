@@ -2,9 +2,13 @@ from contextlib import contextmanager
 import pika
 import time
 import json
+import logging
 from . import logger
 
 MAX_RETRIES = 8
+
+pika_logger = logging.getLogger('pika')
+pika_logger.setLevel(logging.CRITICAL)
 
 
 class Base(object):
@@ -54,6 +58,7 @@ class Receiver(Base):
         channel.queue_declare(queue=queue_name, durable=True)
         logger.info('---')
         logger.info('--- Listening for incoming messages.')
+        logger.info('--- Subscribed to channel %s.' % queue_name)
         logger.info('---')
 
         channel.basic_qos(prefetch_count=int(self.slots))
@@ -74,6 +79,7 @@ class Sender(Base):
         if not isinstance(message, str):
             message = json.dumps(message)
         with self.open_channel() as channel:
+            logger.info('--- Sending message to channel %s.' % self.queue_name)
             channel.queue_declare(queue=self.queue_name, durable=True)
             properties = pika.BasicProperties(delivery_mode=2,)
             channel.basic_publish(exchange='',
