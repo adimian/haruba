@@ -2,15 +2,15 @@ FROM python:3.4
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH $PYTHONPATH:/haruba
 
-RUN apt-get update && apt-get install mercurial -yq
-
 RUN mkdir /haruba
 VOLUME /haruba
 
 WORKDIR /haruba
-ADD requirements.txt /haruba/
-RUN pip install -U pip && pip install -r requirements.txt
+ADD requirements.txt /tmp/requirements.txt
+RUN pip install -U pip && pip install -r /tmp/requirements.txt
 
 ADD . /haruba/
+ADD haruba_cmd /usr/local/bin/haruba
+RUN chmod +x /usr/local/bin/haruba
 
-CMD python3 haruba/server.py runserver
+CMD haruba runserver

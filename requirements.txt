@@ -1,4 +1,4 @@
-hg+https://hg.adimian.com/sigil-client
+https://hg.adimian.com/sigil-client/archive/tip.zip
 Flask==0.10.1
 Flask-Alembic==1.2.1
 Flask-Login==0.2.11
