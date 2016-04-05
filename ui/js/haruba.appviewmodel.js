@@ -154,6 +154,9 @@ var go_to_breadcrumb = function(item, evt){
 var sort_toggle = true
 var sort_items = function(item, evt){
 	sortkey = $(evt.target).data('sortkey')
+	if (sortkey == 'size') {
+		sortkey = 'numeric_size';
+	}
 	sort_toggle = !sort_toggle
 	zvm.folder.sort(function(left, right) {
 		if (left['is_dir'] !== right['is_dir']) {

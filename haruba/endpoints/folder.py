@@ -13,6 +13,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f %s%s" % (num, 'Yi', suffix)
+
+
 def assemble_directory_contents(group, path):
     group_root = get_group_root(group)
     full_path = os.path.join(group_root, path)
@@ -29,10 +37,12 @@ def assemble_directory_contents(group, path):
     files = []
     for item in scandir(full_path):
         mod_date = datetime.fromtimestamp(item.stat().st_mtime)
+        size = item.stat().st_size
         file_dict = {'name': item.name,
                      'is_file': item.is_file(),
                      'is_dir': item.is_dir(),
-                     'size': item.stat().st_size,
+                     'size': sizeof_fmt(size),
+                     'numeric_size': size,
                      'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
         if item.is_dir():
             file_dict['extension'] = "folder"
