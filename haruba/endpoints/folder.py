@@ -8,6 +8,9 @@ from flask_restful import reqparse
 from haruba.permissions import has_read, has_write
 from haruba.utils import get_group_root, success
 from ..signals import browsing
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def assemble_directory_contents(group, path):
@@ -16,11 +19,11 @@ def assemble_directory_contents(group, path):
     browsing.send(current_app._get_current_object(),
                   path=full_path)
     if not os.path.exists(full_path):
-        return abort(404, 'Not Found: %s' % request.url)
+        logger.error('failed to find on disk: %s' % full_path)
+        return abort(404, 'not found on disk: %s' % request.url)
 
     if not os.path.isdir(full_path):
-        error = "%s is not a folder" % request.url
-        return abort(400, error)
+        return abort(400, "%s is not a folder" % request.url)
 
     folders = []
     files = []

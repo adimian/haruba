@@ -153,16 +153,29 @@ var go_to_breadcrumb = function(item, evt){
 
 var sort_toggle = true
 var sort_items = function(item, evt){
+	
+	console.log(item);
+	console.log(evt);
+	
 	sortkey = $(evt.target).data('sortkey')
+	
+	console.log(sortkey);
 	sort_toggle = !sort_toggle
 	zvm.folder.sort(function(left, right) {
-		var left_name = left[sortkey]
-		var right_name = right[sortkey]
-		if(sort_toggle){
-			return left_name == right_name ? 0 : (left_name < right_name ? -1 : 1);
-		}else{
-			return left_name == right_name ? 0 : (left_name > right_name ? -1 : 1);
+		
+		if (left['is_dir'] !== right['is_dir']) {
+			return (left['is_dir'] > right['is_dir'] ? -1 : 1);
 		}
+		else {
+			var left_name = left[sortkey]
+			var right_name = right[sortkey]
+			if(sort_toggle){
+				return left_name == right_name ? 0 : (left_name < right_name ? -1 : 1);
+			}else{
+				return left_name == right_name ? 0 : (left_name > right_name ? -1 : 1);
+			}
+		}
+		
 	});
 };
 
