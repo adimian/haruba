@@ -1,4 +1,4 @@
-from os import environ
+from os import environ, path
 
 
 def configure(app):
@@ -22,6 +22,7 @@ def configure(app):
     set_default('CSRF_ENABLED', True)
     set_default('PORT', 5000)
     set_default('STANDALONE', False)
+    set_default('ERROR_404_HELP', False)
     set_default('API_URL_PREFIX', '')
     set_default('SERVER_NAME', None)
     set_default('SQLALCHEMY_DATABASE_URI', 'sqlite:///')
@@ -29,6 +30,7 @@ def configure(app):
     set_default('SENTRY_DSN', '')
     set_default('SERVE_STATIC', False)
     set_default('UI_URL_PREFIX', '')
+    set_default('APP_KEYS_FOLDER', '')
 
     set_default('SIGIL_APP_KEY', 'WzIsImZmMjM5YzU0ZDBmMzBlNDQ2N2ZmNGYzN2M5NmNkZmQxIl0.CNAp1A.uzrhvwHG5xZuFnITHdkaH3_6dd4')
     set_default('SIGIL_BASE_URL', 'http://docker.dev')
@@ -40,3 +42,9 @@ def configure(app):
     set_default('HARUBA_PLUGIN_FOLDER', '')
     set_default('HARUBA_ENABLE_PLUGINS', False)
     set_default('PERMANENT_SESSION_LIFETIME', 7200)
+
+    if config['APP_KEYS_FOLDER'] and not config['SIGIL_APP_KEY']:
+        keyfile = path.join(config['APP_KEYS_FOLDER'],
+                            '{}.appkey'.format(config['SIGIL_APP_NAME']))
+        with open(keyfile, 'r') as f:
+            config['SIGIL_APP_KEY'] = f.read()

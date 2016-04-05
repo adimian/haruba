@@ -17,6 +17,7 @@ from .endpoints.command import Command
 from .conf import configure
 from .database import db
 from .permissions import principal, set_identity_loader
+import io
 
 
 app = Flask(__name__)
@@ -50,6 +51,21 @@ if app.config['SERVE_STATIC']:
     @app.route('{}/'.format(app.config['UI_URL_PREFIX']))
     @app.route('{}/<path:path>'.format(app.config['UI_URL_PREFIX']))
     def serve(path=""):
+        # render the dynamic JS configuration file
+        if path == '/'.join(("ui", "js", "haruba.config.js")):
+            keys = {"HARUBA_API_URL": app.config['API_URL_PREFIX'],
+                    "SIGIL_BASE_URL": app.config['SIGIL_BASE_URL'],
+                    "SIGIL_API_URL": app.config['SIGIL_API_URL'],
+                    "SIGIL_UI_URL": app.config['SIGIL_UI_URL'],
+                    "SIGIL_RECOVER_URL": "%s/recover.html" % (app.config['SIGIL_BASE_URL'])
+                    }
+            s = io.StringIO()
+            s.write('"use strict"\n')
+            for key, value in keys.items():
+                s.write("var %s = '%s';\n" % (key, value))
+            return s.getvalue()
+
+        # render regular files
         d = os.path.dirname
         root = d(d(os.path.abspath(__file__)))
         file = os.path.basename(path)
