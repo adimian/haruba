@@ -36,8 +36,9 @@ def assemble_directory_contents(group, path):
     folders = []
     files = []
     for item in scandir(full_path):
-        mod_date = datetime.fromtimestamp(item.stat().st_mtime)
-        size = item.stat().st_size
+        stat = item.stat()  # this is a very expensive call, use sparingly
+        mod_date = datetime.fromtimestamp(stat.st_mtime)
+        size = stat.st_size
         file_dict = {'name': item.name,
                      'is_file': item.is_file(),
                      'is_dir': item.is_dir(),
