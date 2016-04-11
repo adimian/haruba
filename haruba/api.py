@@ -1,23 +1,24 @@
+import io
 import logging
-import sys
 import os
+import sys
 
 from flask import Flask, send_from_directory, safe_join
-from flask_restful import Api
 from flask_alembic import Alembic
+from flask_cors import CORS
+from flask_restful import Api
 from raven.contrib.flask import Sentry
 
-from .plugins import PluginManager
-from .endpoints.permission import Permissions
-from .endpoints.login import Login, login_manager, Logout, UserDetails
-from .endpoints.folder import Folder
-from .endpoints.zone import MyZones, Zones
-from .endpoints.transfer import Upload, Download
-from .endpoints.command import Command
 from .conf import configure
 from .database import db
+from .endpoints.command import Command
+from .endpoints.folder import Folder
+from .endpoints.login import Login, login_manager, Logout, UserDetails
+from .endpoints.permission import Permissions
+from .endpoints.transfer import Upload, Download
+from .endpoints.zone import MyZones, Zones
 from .permissions import principal, set_identity_loader
-import io
+from .plugins import PluginManager
 
 
 app = Flask(__name__)
@@ -32,6 +33,7 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 alembic = Alembic(app)
+cors = CORS(app)
 
 plugin_folder = app.config['HARUBA_PLUGIN_FOLDER']
 if not plugin_folder:
