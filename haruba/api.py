@@ -33,7 +33,12 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 alembic = Alembic(app)
-cors = CORS(app)
+if app.config['CORS_ORIGINS']:
+    logger.info('configuring CORS for {}'.format(app.config['CORS_ORIGINS']))
+    cors = CORS(app, resources=app.config['CORS_ORIGINS'],
+                supports_credentials=True,
+                allow_headers='Content-Type',
+                send_wildcard=True)
 
 plugin_folder = app.config['HARUBA_PLUGIN_FOLDER']
 if not plugin_folder:

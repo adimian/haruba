@@ -20,6 +20,7 @@ def configure(app):
     set_default('DEBUG', True)
     set_default('HOST', '0.0.0.0')
     set_default('CSRF_ENABLED', True)
+    set_default('CORS_ORIGINS', '')
     set_default('PORT', 5000)
     set_default('STANDALONE', False)
     set_default('ERROR_404_HELP', False)
