@@ -1,12 +1,20 @@
 import os
-import zipfile
 import tempfile
-from flask_restful import reqparse, inputs
+import unicodedata
+import zipfile
+
 from flask import abort, request, send_file, current_app
+from flask_restful import reqparse, inputs
 from werkzeug.datastructures import FileStorage
-from haruba.utils import success, unzip
+
 from haruba.endpoints import ProtectedReadResource, ProtectedWriteResource
+from haruba.utils import success, unzip
+
 from ..signals import new_file_or_folder
+
+
+def normalize(text):
+    return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')
 
 
 def make_zip(path, root_folder):
@@ -77,6 +85,10 @@ class Download(ProtectedReadResource):
         """
         downloads the file or folder at the given path
         """
+        parser = reqparse.RequestParser()
+        parser.add_argument('view', type=int)
+        args = parser.parse_args()
+
         filepath = os.path.join(group_root, path)
         if not os.path.exists(filepath):
             abort(404, 'Not Found: %s' % request.url)
@@ -84,9 +96,15 @@ class Download(ProtectedReadResource):
         if not os.path.isfile(filepath):
             filepath = make_zip(filepath, filepath)
 
-        return send_file(filepath,
-                         as_attachment=True,
-                         attachment_filename=os.path.basename(filepath))
+        attachment_filename = normalize(os.path.basename(filepath))
+
+        if args.view == 1:
+            kwargs = {}
+        else:
+            kwargs = dict(as_attachment=True,
+                          attachment_filename=attachment_filename)
+
+        return send_file(filepath, **kwargs)
 
     def post(self, group, group_root, path=""):
         """

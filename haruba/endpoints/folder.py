@@ -35,20 +35,27 @@ def assemble_directory_contents(group, path):
 
     folders = []
     files = []
+
+    url_root = current_app.config['API_URL_PREFIX']
+
     for item in scandir(full_path):
         stat = item.stat()  # this is a very expensive call, use sparingly
         mod_date = datetime.fromtimestamp(stat.st_mtime)
-        size = stat.st_size
+        d_link = '/'.join((url_root, 'download', group, path, item.name))
         file_dict = {'name': item.name,
                      'is_file': item.is_file(),
                      'is_dir': item.is_dir(),
-                     'size': sizeof_fmt(size),
-                     'numeric_size': size,
+                     'download_link': d_link.replace('//', '/'),
                      'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
-        if item.is_dir():
+        if file_dict['is_dir']:
             file_dict['extension'] = "folder"
+            file_dict['size'] = '-'
+            file_dict['numeric_size'] = 0
             folders.append(file_dict)
         else:
+            size = stat.st_size
+            file_dict['size'] = sizeof_fmt(size)
+            file_dict['numeric_size'] = size
             file_dict['extension'] = item.name.split(".")[-1]
             files.append(file_dict)
     return folders + files
