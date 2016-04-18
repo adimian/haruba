@@ -42,10 +42,12 @@ def assemble_directory_contents(group, path):
         stat = item.stat()  # this is a very expensive call, use sparingly
         mod_date = datetime.fromtimestamp(stat.st_mtime)
         d_link = '/'.join((url_root, 'download', group, path, item.name))
+        uri = '/'.join((url_root, 'files', group, path, item.name))
         file_dict = {'name': item.name,
                      'is_file': item.is_file(),
                      'is_dir': item.is_dir(),
                      'download_link': d_link.replace('//', '/'),
+                     'uri': uri.replace('//', '/'),
                      'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S')}
         if file_dict['is_dir']:
             file_dict['extension'] = "folder"

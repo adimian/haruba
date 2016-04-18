@@ -40,7 +40,7 @@ def process_request(func, args, kwargs, context, permission):
             # to prevent from getting it manually in each resource
             kwargs['group_root'] = get_group_root(group)
         return func(*args, **kwargs)
-    abort(403)
+    abort(403, 'insufficient permissions')
 
 
 def has_read(func):
