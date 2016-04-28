@@ -8,9 +8,7 @@ define(['ko', 'text!./login-page.html'], function(ko, templateMarkup) {
 
         self.recover = function(){
             var requests = require('models/requests');
-            var url = [requests.SIGIL_UI, 'recover.html'].join('/')
-            console.log(url);
-            window.location = url;
+            window.location = requests.SIGIL_RECOVER_URL;
         }
     }
     return {

@@ -3,9 +3,8 @@ import logging
 import os
 import sys
 
-from flask import Flask, send_from_directory, safe_join
+from flask import Flask, send_from_directory, safe_join, render_template_string
 from flask_alembic import Alembic
-from flask_cors import CORS
 from flask_restful import Api
 from raven.contrib.flask import Sentry
 
@@ -20,7 +19,7 @@ from .endpoints.zone import MyZones, Zones
 from .permissions import principal, set_identity_loader
 from .plugins import PluginManager
 
-
+root_directory = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 app = Flask(__name__)
 configure(app)
 
@@ -33,12 +32,7 @@ set_identity_loader(app)
 login_manager.init_app(app)
 db.init_app(app)
 alembic = Alembic(app)
-if app.config['CORS_ORIGINS']:
-    logger.info('configuring CORS for {}'.format(app.config['CORS_ORIGINS']))
-    cors = CORS(app, resources=app.config['CORS_ORIGINS'],
-                supports_credentials=True,
-                allow_headers='Content-Type',
-                send_wildcard=True)
+
 
 plugin_folder = app.config['HARUBA_PLUGIN_FOLDER']
 if not plugin_folder:
@@ -53,24 +47,24 @@ if app.config['SENTRY_DSN']:
 else:
     logger.info('Sentry is inactive')
 
+requests_file = '/'.join(('js', 'models', 'requests.js'))
+requests_template = open(os.path.join(root_directory,
+                                      'ui', requests_file), 'r').read()
+
 if app.config['SERVE_STATIC']:
     # static files
     @app.route('{}/'.format(app.config['UI_URL_PREFIX']))
     @app.route('{}/<path:path>'.format(app.config['UI_URL_PREFIX']))
     def serve(path=""):
         # render the dynamic JS configuration file
-        if path == '/'.join(("ui", "js", "haruba.config.js")):
-            keys = {"HARUBA_API_URL": app.config['API_URL_PREFIX'],
+        if path == requests_file:
+            keys = {"HARUBA_API": app.config['API_URL_PREFIX'],
                     "SIGIL_BASE_URL": app.config['SIGIL_BASE_URL'],
-                    "SIGIL_API_URL": app.config['SIGIL_API_URL'],
-                    "SIGIL_UI_URL": app.config['SIGIL_UI_URL'],
+                    "SIGIL_API": app.config['SIGIL_API_URL'],
+                    "SIGIL_UI": app.config['SIGIL_UI_URL'],
                     "SIGIL_RECOVER_URL": "%s/recover.html" % (app.config['SIGIL_BASE_URL'])
                     }
-            s = io.StringIO()
-            s.write('"use strict"\n')
-            for key, value in keys.items():
-                s.write("var %s = '%s';\n" % (key, value))
-            return s.getvalue()
+            return render_template_string(requests_template, **keys)
 
         # render regular files
         d = os.path.dirname

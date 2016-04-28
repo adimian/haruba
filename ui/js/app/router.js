@@ -43,7 +43,7 @@ define(function(require){
                 }
             });
             var result = [self.root, '#', url].join('/');
-            while (result.search('//') > 0){
+            while (result.search('//') >= 0){
                 result = result.replace('//', '/');
             }
             return result;

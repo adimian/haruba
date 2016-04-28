@@ -104,9 +104,9 @@ define(function(require) {
     };
 
     return {
-        SIGIL_API: 'http://local.docker/sigil-api',
-        SIGIL_UI: 'http://local.docker/sigil',
-        HARUBA_API: 'http://local.docker/haruba-api',
+        SIGIL_API: '{{SIGIL_API}}',
+        SIGIL_UI: '{{SIGIL_UI}}',
+        HARUBA_API: '{{HARUBA_API}}',
         SIGIL_TOKEN_HEADER: 'Sigil-Token',
         TOKEN_PLACEHOLDER: 'placeholder',
         get: get,

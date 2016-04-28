@@ -1,4 +1,3 @@
-import os
 from flask_script import Manager, Server, prompt_pass, prompt
 from sigil_client import SigilClient
 from flask_alembic.cli.script import manager as alembic_manager
