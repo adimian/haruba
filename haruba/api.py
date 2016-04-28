@@ -62,7 +62,7 @@ if app.config['SERVE_STATIC']:
                     "SIGIL_BASE_URL": app.config['SIGIL_BASE_URL'],
                     "SIGIL_API": app.config['SIGIL_API_URL'],
                     "SIGIL_UI": app.config['SIGIL_UI_URL'],
-                    "SIGIL_RECOVER_URL": "%s/recover.html" % (app.config['SIGIL_BASE_URL'])
+                    "SIGIL_RECOVER_URL": "%s/recover.html" % (app.config['SIGIL_UI_URL'])
                     }
             return render_template_string(requests_template, **keys)
 
