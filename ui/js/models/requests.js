@@ -107,6 +107,7 @@ define(function(require) {
         SIGIL_API: '{{SIGIL_API}}',
         SIGIL_UI: '{{SIGIL_UI}}',
         HARUBA_API: '{{HARUBA_API}}',
+        SIGIL_RECOVER_URL: '{{SIGIL_RECOVER_URL}}',
         SIGIL_TOKEN_HEADER: 'Sigil-Token',
         TOKEN_PLACEHOLDER: 'placeholder',
         get: get,
