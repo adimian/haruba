@@ -36,6 +36,7 @@ def configure(app):
     set_default('SIGIL_APP_KEY', '')
     set_default('SIGIL_BASE_URL', '')
     set_default('SIGIL_API_URL', '%s/sigil-api' % config['SIGIL_BASE_URL'])  # no trailing slash
+    set_default('PRIV_SIGIL_API_URL', config['SIGIL_API_URL'])
     set_default('SIGIL_UI_URL', '%s/sigil' % config['SIGIL_BASE_URL'])
     set_default('SIGIL_APP_NAME', 'haruba')
     set_default('HARUBA_SERVE_ROOT', '/tmp/haruba')

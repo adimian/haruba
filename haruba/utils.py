@@ -38,7 +38,7 @@ def get_sigil_client():
 
 class WrappedSigilClient(object):
     def __init__(self, *args, **kwargs):
-        self.client = SigilClient(current_app.config['SIGIL_API_URL'],
+        self.client = SigilClient(current_app.config['PRIV_SIGIL_API_URL'],
                                   *args, **kwargs)
         self.client._token = session.get('sigil_token')
 
