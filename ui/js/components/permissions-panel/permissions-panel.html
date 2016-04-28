@@ -1,0 +1,77 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Users with permissions on <strong data-bind="text: $data.zone().zone()"></strong>
+    </div>
+    <div class="panel-body">
+        <p class="" data-bind="visible: $data.loading_message">
+            <img src="img/spin.gif" /> <span data-bind="text: $data.loading_message"></span>
+        </p>
+
+        <form class="form-horizontal" id="add-user-form">
+            <div class="dropdown">
+                <label>Add another user</label>
+                <input type="text" class="form-control" placeholder="Start typing more than 3 letters ..." data-bind="value: $data.query, valueUpdate: 'keyup'" data-toggle="dropdown">
+                <ul class="dropdown-menu" data-bind="foreach: $data.candidates">
+                    <li>
+                        <a data-bind="click: $parent.add_user" style="cursor: pointer;">
+                            <p>
+                                <small data-bind="text: $data.username"></small> -
+                                <strong>
+                                <span data-bind="text: $data.first_name"></span>
+                                <span data-bind="text: $data.last_name"></span>
+                            </strong>
+                            </p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+
+        </form>
+
+    </div>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Username
+                </th>
+                <th>
+                    Firstname
+                </th>
+                <th>
+                    Lastname
+                </th>
+                <th>
+                    Access
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: linked_users">
+            <tr>
+                <td><span data-bind="text: $data.username"></span></td>
+                <td><span data-bind="text: $data.first_name"></span></td>
+                <td><span data-bind="text: $data.last_name"></span></td>
+                <td>
+                    <p>
+                        <span data-bind="text: $data.access($parent.zone_name())"></span>
+                        <a href="#" data-bind="click: $parent.toggle_readonly">
+                            <!-- ko if: $data.has_write($parent.zone_name()) -->
+                            <span class="glyphicon glyphicon-eye-close"></span>
+                            <!-- /ko -->
+                            <!-- ko ifnot: $data.has_write($parent.zone_name()) -->
+                            <span class="glyphicon glyphicon-eye-open"></span>
+                            <!-- /ko -->
+                        </a>
+                    </p>
+                </td>
+                <td>
+                    <a href="#" data-bind="click: $parent.remove_user">
+                        <span class="glyphicon glyphicon-trash"></span>
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

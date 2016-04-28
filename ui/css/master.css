@@ -1,0 +1,37 @@
+body {
+    color: #3e3f3a;
+    padding-top: 70px;
+}
+.form-signin {
+    max-width: 400px;
+}
+
+tr.list-row td div.row-actions {
+    visibility: hidden;
+}
+tr.list-row:hover td div.row-actions {
+    visibility: visible;
+}
+.row-actions span {
+    margin-top: 0.5em;
+    margin-left: 0.5em;
+}
+.row-actions span:hover {
+    outline: 3px auto #6699FF;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+.discreet {
+    color: rgba(152, 151, 139, 0.30);
+}
+
+.upload-file-prompt {
+    cursor: pointer;
+}
+
+.dropzone-previews {
+    visibility: hidden;
+    height: 0;
+    width: 0;
+}

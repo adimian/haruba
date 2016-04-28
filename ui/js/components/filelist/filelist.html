@@ -1,0 +1,81 @@
+<div class="container-fluid file-upload-container">
+    <div class="row">
+        <div class="col-md-7">
+
+            <!-- options menu -->
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-option-vertical"></span> Options
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="" data-bind="click: $data.toggle_multiselect"><span class="glyphicon glyphicon-check"></span> Select ...</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a onClick="this.event.returnValue=false;" class="upload-file-prompt"><span class="glyphicon glyphicon-upload"></span> Upload</a></li>
+                    <li><a href="" data-bind="click: $data.new_folder"><span class="glyphicon glyphicon-plus-sign"></span> New Folder</a></li>
+                </ul>
+            </div>
+
+            <!-- multiple selection operations -->
+            <div class="btn-group" role="group" data-bind="visible: $data.multiselect">
+                <button type="button" class="btn btn-default" data-bind="click: $data.select_all"><span class="glyphicon glyphicon-check"></span> Select all</button>
+                <button type="button" class="btn btn-default" data-bind="click: $data.select_none"><span class="glyphicon glyphicon-unchecked"></span> Select none</button>
+                <button type="button" class="btn btn-default" data-bind="click: $data.mass_cut"><span class="glyphicon glyphicon-scissors"></span> Cut</button>
+                <button type="button" class="btn btn-default" data-bind="click: $data.mass_copy"><span class="glyphicon glyphicon-copy"></span> Copy</button>
+                <button type="button" class="btn btn-default" data-bind="click: $data.mass_delete"><span class="glyphicon glyphicon-trash"></span> Delete</button>
+            </div>
+
+            <!-- no-selection operations -->
+            <div class="btn-group" role="group" data-bind="visible: !multiselect()">
+                <button type="button" class="btn btn-default" data-bind="click: $data.mass_paste"><span class="glyphicon glyphicon-paste"></span> Paste</button>
+            </div>
+
+
+        </div>
+        <div class="col-md-5">
+            <div class="input-group search-bar">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></span>
+                <input type="text" name="searchbar" placeholder="Search..." class="form-control" data-bind="value: query, valueUpdate: 'keyup'">
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-responsive table-hover">
+            <thead>
+                <tr>
+                    <!-- ko foreach: headers -->
+                    <td>
+                        <h5 data-bind="text: $data, click: $parent.sort" style="cursor: pointer"></h5>
+                    </td>
+                    <!-- /ko -->
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: list">
+                <tr class="list-row">
+                    <td>
+                        <div class="row">
+                            <fileicon params="extension: extension"></fileicon>
+                            <input type="checkbox" data-bind="visible: $parent.multiselect, checked: $data.selected">
+                            <!-- ko if: browsable() -->
+                            <a data-bind="text: name, attr: {href: url, id: id}"></a>
+                            <!-- /ko -->
+                            <!-- ko ifnot: browsable() -->
+                            <span data-bind="text: name, attr: {id: id}"></span>
+                            <!-- /ko -->
+                        </div>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <span class="glyphicon glyphicon-download" data-bind="click: $data.download"></span>
+                            <span class="glyphicon glyphicon-pencil" data-bind="click: $parent.rename"></span>
+                            <span class="glyphicon glyphicon-trash" data-bind="click: $parent.delete"></span>
+                        </div>
+                    </td>
+                    <td data-bind="text: size"></td>
+                    <td data-bind="text: modified"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="dropzone-previews" class="hidden"></div>

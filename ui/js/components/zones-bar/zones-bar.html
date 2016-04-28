@@ -1,0 +1,6 @@
+<div class="list-group" data-bind="foreach: available_zones" style="margin-top: 1em;">
+    <a data-bind="attr: {href: url}, css: {active: active}" class="list-group-item">
+        <span data-bind="text: zone"></span>
+        <small><span data-bind="visible: !$data.can_write">(read-only)</span></small>
+    </a>
+</div>

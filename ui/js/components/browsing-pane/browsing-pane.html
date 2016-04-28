@@ -1,0 +1,10 @@
+<div class="container-fluid" data-bind="visible: path">
+    <div class="row">
+        <breadcrumbs params="path: path"></breadcrumbs>
+    </div>
+    <div class="row">
+        <filelist params="path: path"></filelist>
+    </div>
+</div>
+
+<h1 class="discreet" data-bind="visible: !path"><span class="glyphicon glyphicon-arrow-left"></span> Select a zone on the left menu</h1>
