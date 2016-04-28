@@ -117,6 +117,8 @@ define(function(require) {
         self.is_authenticated.subscribe(function(is_authenticated) {
             if (!is_authenticated) {
                 window.router.go('login-page');
+            } else {
+                window.router.go('browse-page');
             }
         })
 
@@ -172,7 +174,6 @@ define(function(require) {
             requests.post(requests.HARUBA_API + '/login', creds).success(
                 function(data) {
                     self.restore();
-                    router.go('browse-page');
                 }).error(function(data) {
 
                 var n = window.noty({
