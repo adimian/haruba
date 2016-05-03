@@ -2,7 +2,8 @@ define(function(require) {
 
     CAN_VIEW = [
         'jpg', 'png', 'bmp', 'gif', 'pdf', 'txt', 'csv',
-        'py', 'dat', 'ini'
+        'py', 'dat', 'ini', 'log', 'condorlog', 'err', 'json', 'gms',
+        'lst', 'asc', 'pf', 'opt', 'solverlog', 'modellog', 'md'
     ];
 
 
