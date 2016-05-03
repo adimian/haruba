@@ -1,7 +1,7 @@
 import os
 import shutil
 from scandir import scandir
-from datetime import datetime
+import datetime
 from . import ProtectedResource
 from flask import abort, request, current_app
 from flask_restful import reqparse
@@ -40,7 +40,7 @@ def assemble_directory_contents(group, path):
 
     for item in scandir(full_path):
         stat = item.stat()  # this is a very expensive call, use sparingly
-        mod_date = datetime.fromtimestamp(stat.st_mtime)
+        mod_date = datetime.datetime.fromtimestamp(stat.st_mtime)
         short_path = '/'.join((group, path, item.name)).replace('//', '/')
         d_link = '/'.join((url_root, 'download', short_path))
         uri = '/'.join((url_root, 'files', short_path))

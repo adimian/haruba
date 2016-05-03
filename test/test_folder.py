@@ -1,11 +1,12 @@
+import datetime
 import json
-import os
-from scandir import scandir
-from datetime import datetime
-import pytest
-import shutil
 from operator import itemgetter
+import os
+import shutil
 from unittest.mock import patch
+
+import pytest
+
 
 ROOT_DIR = pytest.ROOT_DIR
 is_in_data = pytest.is_in_data
@@ -13,28 +14,38 @@ make_srv = pytest.make_srv
 remove_srv = pytest.remove_srv
 
 
+class MyDatetime(datetime.datetime):
+    @classmethod
+    def fromtimestamp(cls, dt):
+        return datetime.datetime(2016, 5, 3, 9, 53, 54)
+
+
+@patch('datetime.datetime', MyDatetime)
 def test_get_files(authenticated_client):
     ac = authenticated_client
     r = ac.get("/files/test_zone")
     data = json.loads(r.data.decode('utf-8'))
     data = sorted(data, key=itemgetter('name'))
 
-    expected_data = []
-    full_path = os.path.join(ROOT_DIR, "srv")
-    for item in scandir(full_path):
-        mod_date = datetime.fromtimestamp(item.stat().st_mtime)
-        if item.is_file():
-            extension = item.name.split(".")[-1]
-        else:
-            extension = 'folder'
-        file_dict = {'name': item.name,
-                     'is_file': item.is_file(),
-                     'is_dir': item.is_dir(),
-                     'size': item.stat().st_size,
-                     'modif_date': mod_date.strftime('%Y-%m-%d %H:%M:%S'),
-                     'extension': extension}
-        expected_data.append(file_dict)
-    assert data == sorted(expected_data, key=itemgetter('name'))
+    exp = [{'path': 'test_zone/file', 'uri': '/files/test_zone/file',
+            'size': '12.0 B', 'name': 'file',
+            'download_link': '/download/test_zone/file',
+            'numeric_size': 12, 'extension': 'file',
+            'modif_date': '2016-05-03 09:53:54', 'is_dir': False,
+            'is_file': True},
+           {'path': 'test_zone/folder1', 'uri': '/files/test_zone/folder1',
+            'size': '-', 'name': 'folder1',
+            'download_link': '/download/test_zone/folder1',
+            'numeric_size': 0, 'extension': 'folder',
+            'modif_date': '2016-05-03 09:53:54',
+            'is_dir': True, 'is_file': False},
+           {'path': 'test_zone/folder2', 'uri': '/files/test_zone/folder2',
+            'size': '-', 'name': 'folder2',
+            'download_link': '/download/test_zone/folder2', 'numeric_size': 0,
+            'extension': 'folder', 'modif_date': '2016-05-03 09:53:54',
+            'is_dir': True, 'is_file': False}]
+
+    assert data == sorted(exp, key=itemgetter('name'))
 
 
 def test_get_files_on_folder(authenticated_client):
