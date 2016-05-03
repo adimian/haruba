@@ -185,6 +185,16 @@ define(function(require) {
         };
 
         self.send_sms = function() {
+
+            if (!self.username()){
+                noty({
+                    text: 'Please fill-in your username',
+                    layout: 'topCenter',
+                    type: 'error'
+                });
+                return false;
+            }
+
             var requests = require('models/requests');
             var url = [requests.SIGIL_API, 'user', '2fa', 'sms'].join('/')
             requests.post(url, {
