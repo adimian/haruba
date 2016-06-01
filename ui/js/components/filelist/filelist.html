@@ -1,14 +1,17 @@
 <div class="modal fade" id="contentmodal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-body">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <div>
-          <iframe width="100%" style="height: 75vh;" src=""></iframe>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Preview</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <iframe width="100%" style="height: 75vh;" src=""></iframe>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 
 <div class="container-fluid file-upload-container">
@@ -76,12 +79,12 @@
                             <fileicon params="extension: extension"></fileicon>
                             <input type="checkbox" data-bind="visible: $parent.multiselect, checked: $data.selected">
                             <!-- ko if: browsable() -->
-                                <!-- ko if: is_dir -->
-                                    <a data-bind="text: name, attr: {id: id, href: url}"></a>
-                                <!-- /ko -->
-                                <!-- ko ifnot: is_dir -->
-                                    <a data-bind="text: name, attr: {id: id}, click: $parent.load_content"></a>
-                                <!-- /ko -->
+                            <!-- ko if: is_dir -->
+                            <a data-bind="text: name, attr: {id: id, href: url}"></a>
+                            <!-- /ko -->
+                            <!-- ko ifnot: is_dir -->
+                            <a data-bind="text: name, attr: {id: id}, click: $parent.load_content"></a>
+                            <!-- /ko -->
                             <!-- /ko -->
                             <!-- ko ifnot: browsable() -->
                             <span data-bind="text: name, attr: {id: id}"></span>
