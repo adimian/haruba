@@ -118,7 +118,9 @@ define(function(require) {
             if (!is_authenticated) {
                 window.router.go('login-page');
             } else {
-                window.router.go('browse-page');
+                if (!window.router.already('browse-page')){
+                    window.router.go('browse-page');
+                }
             }
         })
 

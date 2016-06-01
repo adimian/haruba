@@ -35,6 +35,10 @@ define(function(require){
             window.location = self.urlfor(route);
         };
 
+        self.already = function(route) {
+            return self.currentRoute().page == route;
+        }
+
         self.urlfor = function(page, params) {
             var url = null;
             ko.utils.arrayForEach(config.routes, function(route) {
