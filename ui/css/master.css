@@ -50,3 +50,7 @@ tr.list-row:hover td div.row-actions {
 .table>tbody>tr>td {
     padding: 0.5rem;
 }
+
+.content-link {
+    cursor:zoom-in;
+}
