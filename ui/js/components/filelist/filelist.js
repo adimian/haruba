@@ -174,6 +174,9 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
         self._copy_cut = function(action) {
             var cookies = require('cookies-js');
             var selection = self._mass_selection();
+
+            if (!selection.paths.length){ return; }
+
             cookies('clipboard', JSON.stringify(selection.paths), {
                 expires: 300
             });
@@ -240,6 +243,7 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
 
         self.mass_delete = function() {
             var selection = self._mass_selection();
+            if (!selection.paths.length){ return; }
             noty({
                 layout: 'center',
                 text: 'Do you want to delete ' + selection.files.length + ' files ?',
