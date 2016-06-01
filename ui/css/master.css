@@ -35,3 +35,14 @@ tr.list-row:hover td div.row-actions {
     height: 0;
     width: 0;
 }
+
+.navbar-brand-img {
+    height: 24px;
+    width: 24px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.navbar-brand {
+    margin-right: 2rem;
+}
