@@ -289,6 +289,12 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
             self.rename(item);
         }
 
+        self.load_content = function(item) {
+            $('#contentmodal iframe').attr('src', item.url());
+
+            $('#contentmodal').modal('show');
+        }
+
         // define the dropzone
         var requests = require('models/requests');
         var dropzone = require('dropzone');
