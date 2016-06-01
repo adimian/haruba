@@ -8,7 +8,7 @@
                     <span class="glyphicon glyphicon-option-vertical"></span> Options
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a href="" data-bind="click: $data.toggle_multiselect"><span class="glyphicon glyphicon-check"></span> Select ...</a></li>
+                    <!-- <li><a href="" data-bind="click: $data.toggle_multiselect"><span class="glyphicon glyphicon-check"></span> Select ...</a></li> -->
                     <li role="separator" class="divider"></li>
                     <li><a onClick="this.event.returnValue=false;" class="upload-file-prompt"><span class="glyphicon glyphicon-upload"></span> Upload</a></li>
                     <li><a href="" data-bind="click: $data.new_folder"><span class="glyphicon glyphicon-plus-sign"></span> New Folder</a></li>
@@ -25,7 +25,7 @@
             </div>
 
             <!-- no-selection operations -->
-            <div class="btn-group" role="group" data-bind="visible: !multiselect()">
+            <div class="btn-group" role="group" data-bind="visible: show_paste">
                 <button type="button" class="btn btn-default" data-bind="click: $data.mass_paste"><span class="glyphicon glyphicon-paste"></span> Paste</button>
             </div>
 

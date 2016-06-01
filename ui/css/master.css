@@ -46,3 +46,7 @@ tr.list-row:hover td div.row-actions {
 .navbar-brand {
     margin-right: 2rem;
 }
+
+.table>tbody>tr>td {
+    padding: 0.5rem;
+}

@@ -7,7 +7,8 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
         self.content = ko.observableArray([]);
         self.query = ko.observable(null);
 
-        self.multiselect = ko.observable(false);
+        self.multiselect = ko.observable(true);
+        self.show_paste = ko.observable(false);
 
         self.list = ko.computed(function() {
             var query = self.query();
@@ -184,16 +185,15 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
                 type: 'information',
                 timeout: 3500
             });
+            self.show_paste(true);
         }
 
         self.mass_cut = function() {
             self._copy_cut('cut');
-            self.multiselect(false);
         }
 
         self.mass_copy = function() {
             self._copy_cut('copy');
-            self.multiselect(false);
         }
 
         self.mass_paste = function() {
@@ -232,6 +232,7 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
             requests.post(url, {
                 commands: [command]
             }, true).success(function(data) {
+                self.show_paste(false);
                 self.reload();
             })
 
@@ -251,14 +252,12 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
                                 self.content.remove(item);
                             })
                         })
-                        self.multiselect(false);
                         $noty.close();
                     }
                 }, {
                     addClass: 'btn btn-danger',
                     text: 'No',
                     onClick: function($noty) {
-                        self.multiselect(false);
                         $noty.close();
                     }
                 }]
