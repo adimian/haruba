@@ -9,6 +9,13 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
 
         self.multiselect = ko.observable(true);
         self.show_paste = ko.observable(false);
+        self.show_up = ko.observable(self.path().split('/').length-1);
+
+        self.parent_url = ko.pureComputed(function(){
+            var crumbs = self.path().split('/');
+            var parent = crumbs.slice(0, crumbs.length-1);
+            return [router.urlfor('browse-page'), parent].join('/');
+        }, this);
 
         self.list = ko.computed(function() {
             var query = self.query();
