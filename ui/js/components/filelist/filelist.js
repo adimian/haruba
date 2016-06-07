@@ -14,7 +14,8 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
         self.parent_url = ko.pureComputed(function() {
             var crumbs = self.path().split('/');
             var parent = crumbs.slice(0, crumbs.length - 1);
-            return [router.urlfor('browse-page'), parent].join('/');
+            var url = [router.urlfor('browse-page'), parent.join('/')].join('/');
+            return url;
         }, this);
 
         self.list = ko.computed(function() {
