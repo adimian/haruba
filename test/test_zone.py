@@ -56,6 +56,19 @@ def test_wrong_input(admin_client):
 
 @patch('sigil_client.SigilApplication.declare', declare)
 @patch('sigil_client.SigilApplication.retract', retract)
+def test_wrong_path(admin_client):
+    ac = admin_client
+    command = {'zones': [{'zone': "folder2_zone",
+                          'path': '/test/test'}]}
+    content = json.dumps(command)
+    r = ac.post("/zone", data=content,
+                content_type='application/json')
+    assert r.status_code == 400
+    is_in_data(r, 'message', 'A zone path must be only a root, not a sub-directory')
+
+
+@patch('sigil_client.SigilApplication.declare', declare)
+@patch('sigil_client.SigilApplication.retract', retract)
 def test_create_zones(admin_client):
     ac = admin_client
     command = {'zones': [{'zone': "folder2_zone",

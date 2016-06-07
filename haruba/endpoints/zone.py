@@ -59,6 +59,8 @@ class Zones(ProtectedResource):
                 abort(400, "This zone already exists")
             if path.startswith("/"):
                 path = path[1:]
+            if '/' in path:
+                abort(400, 'A zone path must be only a root, not a sub-directory')
             zone_path = os.path.join(current_app.config['HARUBA_SERVE_ROOT'],
                                      path)
             os.makedirs(zone_path, exist_ok=True)
