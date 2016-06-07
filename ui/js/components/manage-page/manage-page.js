@@ -41,6 +41,12 @@ define(['ko', 'text!./manage-page.html'], function(ko, templateMarkup) {
                 self.new_name('');
                 self.new_path('');
                 self.refresh();
+            }).error(function(data){
+                noty({
+                    text: 'Unable to create the zone: ' + data.responseJSON.message,
+                    type: 'error',
+                    timeout: 4500
+                });
             })
         }
 
