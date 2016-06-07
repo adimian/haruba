@@ -6,7 +6,7 @@ define(function(require) {
             console.log(error);
         }
 
-        if (error.status == 404 && error.responseJSON){
+        if (error.status == 404 && error.responseJSON) {
             noty({
                 text: error.responseJSON.message,
                 type: 'error',
@@ -49,7 +49,7 @@ define(function(require) {
 
     }
 
-    var get = function(url, payload)  {
+    var get = function(url, payload) {
         return $.ajax({
             url: url,
             data: payload,
@@ -57,7 +57,7 @@ define(function(require) {
         }).error(onerror);
     };
 
-    var post = function(url, payload, json)  {
+    var post = function(url, payload, json) {
         if (json || false) {
             return $.ajax({
                 url: url,
@@ -76,7 +76,7 @@ define(function(require) {
 
     };
 
-    var deleteme = function(url, payload, json)  {
+    var deleteme = function(url, payload, json) {
         if (json || false) {
             return $.ajax({
                 url: url,
@@ -95,7 +95,7 @@ define(function(require) {
 
     };
 
-    var putme = function(url, payload)  {
+    var putme = function(url, payload) {
         return $.ajax({
             url: url,
             data: payload,
