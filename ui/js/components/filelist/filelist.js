@@ -9,11 +9,11 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
 
         self.multiselect = ko.observable(true);
         self.show_paste = ko.observable(false);
-        self.show_up = ko.observable(self.path().split('/').length-1);
+        self.show_up = ko.observable(self.path().split('/').length - 1);
 
-        self.parent_url = ko.pureComputed(function(){
+        self.parent_url = ko.pureComputed(function() {
             var crumbs = self.path().split('/');
-            var parent = crumbs.slice(0, crumbs.length-1);
+            var parent = crumbs.slice(0, crumbs.length - 1);
             return [router.urlfor('browse-page'), parent].join('/');
         }, this);
 
@@ -182,7 +182,9 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
             var cookies = require('cookies-js');
             var selection = self._mass_selection();
 
-            if (!selection.paths.length){ return; }
+            if (!selection.paths.length) {
+                return;
+            }
 
             cookies('clipboard', JSON.stringify(selection.paths), {
                 expires: 300
@@ -248,9 +250,55 @@ define(['ko', 'text!./filelist.html'], function(ko, templateMarkup) {
 
         }
 
+        self._post_ajax_download = function(url, data, input_name) {
+            var $iframe,
+                iframe_doc,
+                iframe_html;
+
+            if (($iframe = $('#download_iframe')).length === 0) {
+                $iframe = $("<iframe id='download_iframe'" +
+                    " style='display: none' src='about:blank'></iframe>"
+                ).appendTo("body");
+            }
+
+            iframe_doc = $iframe[0].contentWindow || $iframe[0].contentDocument;
+            if (iframe_doc.document) {
+                iframe_doc = iframe_doc.document;
+            }
+
+            iframe_html = "<html><head></head><body><form method='POST' action='" +
+                url + "'>" +
+                '<input type=hidden name="' + input_name + '" value="' +
+                data + '"/></form>' +
+                "</body></html>";
+
+            iframe_doc.open();
+            iframe_doc.write(iframe_html);
+            $(iframe_doc).find('form').submit();
+        }
+
+        self.mass_download = function() {
+            var selection = self._mass_selection();
+            if (!selection.paths.length) {
+                return;
+            }
+            var filenames = [];
+            ko.utils.arrayForEach(selection.files, function(item) {
+                filenames.push(item.name());
+            })
+
+            var requests = require('models/requests');
+            var url = [requests.HARUBA_API, 'download', self.path()].join('/');
+
+            self._post_ajax_download(url, filenames.join(','), 'filenames');
+
+        }
+
         self.mass_delete = function() {
             var selection = self._mass_selection();
-            if (!selection.paths.length){ return; }
+            if (!selection.paths.length) {
+                return;
+            }
             noty({
                 layout: 'center',
                 text: 'Do you want to delete ' + selection.files.length + ' files ?',

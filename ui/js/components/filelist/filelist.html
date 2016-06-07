@@ -35,6 +35,13 @@
             <div class="btn-group" role="group" data-bind="visible: $data.multiselect">
                 <button type="button" class="btn btn-default" data-bind="click: $data.select_all"><span class="glyphicon glyphicon-check"></span> Select all</button>
                 <button type="button" class="btn btn-default" data-bind="click: $data.select_none"><span class="glyphicon glyphicon-unchecked"></span> Select none</button>
+            </div>
+            
+            <div class="btn-group" role="group" data-bind="visible: $data.multiselect">
+                <button type="button" class="btn btn-default" data-bind="click: $data.mass_download"><span class="glyphicon glyphicon-compressed"></span> Download</button>
+            </div>
+
+            <div class="btn-group" role="group" data-bind="visible: $data.multiselect">
                 <button type="button" class="btn btn-default" data-bind="click: $data.mass_cut"><span class="glyphicon glyphicon-scissors"></span> Cut</button>
                 <button type="button" class="btn btn-default" data-bind="click: $data.mass_copy"><span class="glyphicon glyphicon-copy"></span> Copy</button>
                 <button type="button" class="btn btn-default" data-bind="click: $data.mass_delete"><span class="glyphicon glyphicon-trash"></span> Delete</button>
